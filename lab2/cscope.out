@@ -1,4 +1,4 @@
-cscope 15 $HOME/PlutoShe/Os/JOS_OperatingSystemlab/lab2 -q 0000000825 0000102131
+cscope 15 $HOME/PlutoShe/Os/JOS_OperatingSystemlab/lab2               0000102131
 	@boot/main.c
 
 1 
