@@ -1,0 +1,14 @@
+./monitor.h
+./console.c
+./init.c
+./kernel.h
+./console.h
+./monitor.c
+./entrypgdir.c
+./kclock.h
+./kdebug.c
+./pmap.h
+./kdebug.h
+./printf.c
+./kclock.c
+./pmap.c
