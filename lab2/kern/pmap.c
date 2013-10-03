@@ -96,9 +96,16 @@ boot_alloc(uint32_t n)
 	// Allocate a chunk large enough to hold 'n' bytes, then update
 	// nextfree.  Make sure nextfree is kept aligned
 	// to a multiple of PGSIZE.
-	//
-	// LAB 2: Your code here.
+	// page_alloc() is the real allocator.
 
+	// LAB 2: Your code here.
+	if (n > 0) {
+		nextfree += n;
+		nextfree = ROUNDUP(nextfree, PGSIZE);
+		return nextfree;
+	} else if (n == 0) {
+		return nextfree;
+	}
 	return NULL;
 }
 
@@ -247,9 +254,13 @@ page_init(void)
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
 	size_t i;
+	size_t low = IOPHYSMEM;	
+	size_t top = (size_t)boot_alloc(0);
 	for (i = 0; i < npages; i++) {
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
+		if (i == 0) continue;
+		if (i >= PTX(low) && i < PTX(top)) continue; 
 		page_free_list = &pages[i];
 	}
 }
@@ -267,6 +278,8 @@ struct PageInfo *
 page_alloc(int alloc_flags)
 {
 	// Fill this function in
+	if (alloc_flags & ALLOC_ZERO) memset(page_free_list, 0, PGSIZE);
+	return (struct PageInfo*)page_free_list;
 	return 0;
 }
 
@@ -278,6 +291,8 @@ void
 page_free(struct PageInfo *pp)
 {
 	// Fill this function in
+	pp->pp_link = page_free_list;
+	page_free_list = pp;
 }
 
 //
