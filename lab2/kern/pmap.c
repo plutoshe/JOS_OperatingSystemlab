@@ -100,11 +100,12 @@ boot_alloc(uint32_t n)
 
 	// LAB 2: Your code here.
 	if (n > 0) {
+		void *temp = nextfree;
 		nextfree += n;
 		nextfree = ROUNDUP(nextfree, PGSIZE);
-		return nextfree;
+		return temp;
 	} else if (n == 0) {
-		return nextfree;
+		return (void*)nextfree;
 	}
 	return NULL;
 }
@@ -128,13 +129,12 @@ mem_init(void)
 	i386_detect_memory();
 
 	// Remove this line when you're ready to test this function.
-	panic("mem_init: This function is not finished\n");
+//	panic("mem_init: This function is not finished\n");
 
 	//////////////////////////////////////////////////////////////////////
 	// create initial page directory.
 	kern_pgdir = (pde_t *) boot_alloc(PGSIZE);
 	memset(kern_pgdir, 0, PGSIZE);
-
 	//////////////////////////////////////////////////////////////////////
 	// Recursively insert PD in itself as a page table, to form
 	// a virtual page table at virtual address UVPT.
@@ -143,14 +143,14 @@ mem_init(void)
 
 	// Permissions: kernel R, user R
 	kern_pgdir[PDX(UVPT)] = PADDR(kern_pgdir) | PTE_U | PTE_P;
-
+	cprintf("~~~");
 	//////////////////////////////////////////////////////////////////////
 	// Allocate an array of npages 'struct PageInfo's and store it in 'pages'.
 	// The kernel uses this array to keep track of physical pages: for
 	// each physical page, there is a corresponding struct PageInfo in this
 	// array.  'npages' is the number of physical pages in memory.
 	// Your code goes here:
-
+	pages = (struct PageInfo*) boot_alloc(npages * sizeof(struct PageInfo));
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
@@ -159,6 +159,7 @@ mem_init(void)
 	// particular, we can now map memory using boot_map_region
 	// or page_insert
 	page_init();
+	cprintf("!!!");
 
 	check_page_free_list(1);
 	check_page_alloc();
@@ -254,13 +255,16 @@ page_init(void)
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
 	size_t i;
-	size_t low = IOPHYSMEM;	
-	size_t top = (size_t)boot_alloc(0);
+	size_t low = IOPHYSMEM / PGSIZE;	
+	size_t top = (PADDR(boot_alloc(0))) / PGSIZE;
+//	cprintf("00");
+	page_free_list = NULL;
 	for (i = 0; i < npages; i++) {
 		pages[i].pp_ref = 0;
-		pages[i].pp_link = page_free_list;
 		if (i == 0) continue;
-		if (i >= PTX(low) && i < PTX(top)) continue; 
+		if (i >= low && i < top) continue; 
+	//	cprintf("%d\n", i);
+		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
 	}
 }
@@ -278,8 +282,16 @@ struct PageInfo *
 page_alloc(int alloc_flags)
 {
 	// Fill this function in
-	if (alloc_flags & ALLOC_ZERO) memset(page_free_list, 0, PGSIZE);
-	return (struct PageInfo*)page_free_list;
+	if (page_free_list != NULL) {
+		if (alloc_flags & ALLOC_ZERO) {
+//			cprintf("\n````!!!");
+			memset(page2kva(page_free_list), 0, PGSIZE);
+		}
+		struct PageInfo* temp = page_free_list;
+		page_free_list = page_free_list->pp_link;
+//		return (struct PageInfo*) page_free_list;
+		return temp;
+	}
 	return 0;
 }
 
@@ -557,7 +569,7 @@ check_page_alloc(void)
 	assert((pp = page_alloc(ALLOC_ZERO)));
 	assert(pp && pp0 == pp);
 	c = page2kva(pp);
-	for (i = 0; i < PGSIZE; i++)
+	for (i = 0; i < PGSIZE; i++) 
 		assert(c[i] == 0);
 
 	// give free list back
