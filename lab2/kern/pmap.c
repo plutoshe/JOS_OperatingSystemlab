@@ -388,7 +388,7 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
 	uintptr_t end = va + size;
 	pte_t* now;
 	for (;va != end; va += PGSIZE, pa += PGSIZE) {
-		now = pgdir_walk(pgdir, (void*)va, true);
+		now = pgdir_walk(pgdir, (void*)va, 1);
 		if (now == NULL)
 			panic("stopped");
 		*now = PTE_ADDR(pa) | perm | PTE_P;
