@@ -230,7 +230,7 @@ page_remove():
 ```
 page_insert():
 ```
-pte_t* now = pgdir_walk(pgdir, va, 0);
+	pte_t* now = pgdir_walk(pgdir, va, 0);
 	if ((now != NULL) && (*now & PTE_P)) {
 		if (PTE_ADDR(*now) == page2pa(pp)) {
 			*now = PTE_ADDR(page2pa(pp)) | perm | PTE_P;
@@ -254,6 +254,7 @@ pte_t* now = pgdir_walk(pgdir, va, 0);
 kernel panic at kern/pmap.c:354: KADDR called with invalid pa f0119000
 ```
 对于这个错误非常有感触，一开是认为a+4和a[4]是相同的，之后经过考虑，发现如果a是一个int*的话，a+4还是表示一个int指针，而a[4]则是一个int，所以这两者不同，这个错误属于自己对于指针的理解错误，所以对于pgdir_walk中的物理地址没有引用正确导致了这个错误。
+
  
 ```
 kernel panic at kern/pmap.c:775: assertion failed: !page_alloc(0)
@@ -292,23 +293,54 @@ Exercise 5
 ```
 Exercise 5. Fill in the missing code in mem_init() after the call to check_page().
 ```
-Your code should now pass the check_kern_pgdir() and check_page_installed_pgdir() checks.
+###exercise5解答
+```
+Map 'pages' read-only by the user at linear address UPAGES
+Use the physical memory that 'bootstack' refers to as the kernel stack.  The kernel stack grows down from virtual address KSTACKTOP.
+Map all of physical memory at KERNBASE.
+Your code should now pass the check_kern_pgdir() and
+ check_page_installed_pgdir() checks.
+
+```
+根据要求的对应夜页面和权限，得到以下代码:
+```
+	boot_map_region(kern_pgdir, UPAGES, ROUNDUP(npages * sizeof(struct PageInfo), PGSIZE), PADDR(pages), PTE_U | PTE_P);
+	boot_map_region(kern_pgdir, KSTACKTOP - KSTKSIZE, KSTKSIZE, PADDR(bootstack), PTE_W);
+	boot_map_region(kern_pgdir, KERNBASE, /*(1 << 32)*/ - KERNBASE, 0, PTE_W); 
+
+```
+###exercise5遇到的困难和错误
+```
 kernel panic at kern/pmap.c:685: assertion failed: check_va2pa(pgdir, KERNBASE + i) == i
-
+```
 这个错误是在boot_map_region中我写的循环没有考虑到尾地址越界的情况，直接使用了< 号，其实应该使用！=号
-
-uintptr_t end = va + size;
-
-for (;va < end; va += PGSIZE, pa += PGSIZE) {
-
+```
+	uintptr_t end = va + size;
+	for (;va < end; va += PGSIZE, pa += PGSIZE) 
+```
 应该改成
-
-uintptr_t end = va + size;
-
-for (;va ！= end; va += PGSIZE, pa += PGSIZE) {
-
+```
+	uintptr_t end = va + size;
+	for (;va ！= end; va += PGSIZE, pa += PGSIZE) {
  
+```
+Question
 
+2.What entries (rows) in the page directory have been filled in at this point? What addresses do they map and where do they point? In other words, fill out this table as much as possible:
+Entry	Base Virtual Address	Points to (logically):
+1023	?	Page table for top 4MB of phys memory
+1022	?	?
+.	?	?
+.	?	?
+.	?	?
+2	0x00800000	?
+1	0x00400000	?
+0	0x00000000	[see next question]
+3.(From Lecture 3) We have placed the kernel and user environment in the same address space. Why will user programs not be able to read or write the kernel's memory? What specific mechanisms protect the kernel memory?
+4.What is the maximum amount of physical memory that this operating system can support? Why?
+5.How much space overhead is there for managing memory, if we actually had the maximum amount of physical memory? How is this overhead broken down?
+6.Revisit the page table setup in kern/entry.S and kern/entrypgdir.c. Immediately after we turn on paging, EIP is still a low number (a little over 1MB). At what point do we transition to running at an EIP above KERNBASE? What makes it possible for us to continue executing at a low EIP between when we enable paging and when we begin running at an EIP above KERNBASE? Why is this transition necessary?
+```
  
 
 大标题
