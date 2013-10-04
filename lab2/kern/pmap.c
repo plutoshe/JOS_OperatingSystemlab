@@ -143,7 +143,7 @@ mem_init(void)
 
 	// Permissions: kernel R, user R
 	kern_pgdir[PDX(UVPT)] = PADDR(kern_pgdir) | PTE_U | PTE_P;
-	cprintf("~~~");
+//	cprintf("~~~");
 	//////////////////////////////////////////////////////////////////////
 	// Allocate an array of npages 'struct PageInfo's and store it in 'pages'.
 	// The kernel uses this array to keep track of physical pages: for
@@ -260,9 +260,12 @@ page_init(void)
 //	cprintf("00");
 	page_free_list = NULL;
 	for (i = 0; i < npages; i++) {
+		if (i == 0 || (i >= low && i < top)){
+			pages[i].pp_ref = 1;
+			pages[i].pp_link = NULL;
+			continue;
+		}
 		pages[i].pp_ref = 0;
-		if (i == 0) continue;
-		if (i >= low && i < top) continue; 
 	//	cprintf("%d\n", i);
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
@@ -292,7 +295,7 @@ page_alloc(int alloc_flags)
 //		return (struct PageInfo*) page_free_list;
 		return temp;
 	}
-	return 0;
+	return NULL;
 }
 
 //
@@ -344,6 +347,25 @@ pte_t *
 pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
 	// Fill this function in
+	bool exist = false;
+	pte_t *ptdir;
+	if	(pgdir[PDX(va)] & PTE_P) {
+//		pte_t * ptdir = (pte_t*) (PGNUM(*(pgdir + PDX(va))) << PGSHIFT);
+		ptdir = (pte_t*) KADDR(PTE_ADDR(pgdir[PDX(va)]));
+//		pgdir[PDX(va)];
+//		cprintf("%d", va);
+		return ptdir + PTX(va);
+	} else {
+		if (create) {
+			struct PageInfo * temp = page_alloc(ALLOC_ZERO);
+			if (temp == NULL) return NULL;
+			temp->pp_ref++;
+			pgdir[PDX(va)] = page2pa(temp) | PTE_P | PTE_U | PTE_W;
+			ptdir = (pte_t*) KADDR(page2pa(temp));
+			return ptdir + PTX(va);
+		} else return NULL;
+	}
+	//temp + PTXSHIFT(va)
 	return NULL;
 }
 
@@ -355,12 +377,20 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
 // This function is only intended to set up the ``static'' mappings
 // above UTOP. As such, it should *not* change the pp_ref field on the
 // mapped pages.
-//
+// 
 // Hint: the TA solution uses pgdir_walk
 static void
 boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
 {
 	// Fill this function in
+	uintptr_t end = va + size;
+	pte_t* now;
+	for (;va < end; va += PGSIZE, pa += PGSIZE) {
+		now = pgdir_walk(pgdir, (void*)va, true);
+		if (now == NULL)
+			panic("!!");
+		*now = PTE_ADDR(pa) | perm | PTE_P;
+	}
 }
 
 //
@@ -386,12 +416,28 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
 //   -E_NO_MEM, if page table couldn't be allocated
 //
 // Hint: The TA solution is implemented using pgdir_walk, page_remove,
-// and page2pa.
+// and page2pa隐式声明函数‘page_walk’.
 //
 int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
 	// Fill this function in
+	pte_t* now = pgdir_walk(pgdir, va, 0);
+	if ((now != NULL) && (*now & PTE_P)) {
+		cprintf("!");
+//		PageInfo* now_page = (PageInfo*) pa2page(PTE_ADDR(now) + PGOFF(va));
+//		page_remove(now_page);
+		if (PTE_ADDR(*now) == page2pa(pp)) {
+			*now = PTE_ADDR(page2pa(pp)) | perm | PTE_P;
+			return 0;
+		}
+		cprintf("%d\n", *now);
+		page_remove(pgdir, va);
+	}
+	if (now == NULL) now = pgdir_walk(pgdir, va, 1);
+	if (now == NULL) return -E_NO_MEM;
+	*now = PTE_ADDR(page2pa(pp)) | perm | PTE_P;
+	pp->pp_ref++;
 	return 0;
 }
 
@@ -410,6 +456,13 @@ struct PageInfo *
 page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 {
 	// Fill this function in
+	pte_t* now = pgdir_walk(pgdir, va, 0);
+	if (now != NULL) {
+		if (pte_store != NULL) {
+			*pte_store = now;
+		}
+		return pa2page(PTE_ADDR(*now));
+	}
 	return NULL;
 }
 
@@ -432,6 +485,20 @@ void
 page_remove(pde_t *pgdir, void *va)
 {
 	// Fill this function in
+//	if (pgdir & PTE_P == 1) {
+	pte_t* now;	
+	struct PageInfo* temp = page_lookup(pgdir, va, &now);
+	if (temp != NULL) {
+//		cprintf("%d", now);
+		if (*now & PTE_P) {
+//			cprintf("subtraction finish!");
+			page_decref(temp);
+		}
+		//page_decref(temp);
+	//}
+		*now = 0;
+	}
+
 }
 
 //
@@ -606,8 +673,10 @@ check_kern_pgdir(void)
 
 	// check pages array
 	n = ROUNDUP(npages*sizeof(struct PageInfo), PGSIZE);
-	for (i = 0; i < n; i += PGSIZE)
+	for (i = 0; i < n; i += PGSIZE) {
+		cprintf("%d", i);
 		assert(check_va2pa(pgdir, UPAGES + i) == PADDR(pages) + i);
+	}
 
 
 	// check phys mem
@@ -647,11 +716,13 @@ check_kern_pgdir(void)
 static physaddr_t
 check_va2pa(pde_t *pgdir, uintptr_t va)
 {
+//	cprintf("!");
 	pte_t *p;
-
+	cprintf("!");
 	pgdir = &pgdir[PDX(va)];
 	if (!(*pgdir & PTE_P))
 		return ~0;
+ //	cprintf("!");	
 	p = (pte_t*) KADDR(PTE_ADDR(*pgdir));
 	if (!(p[PTX(va)] & PTE_P))
 		return ~0;
@@ -726,6 +797,7 @@ check_page(void)
 	assert(page_insert(kern_pgdir, pp2, (void*) PGSIZE, PTE_W|PTE_U) == 0);
 	assert(check_va2pa(kern_pgdir, PGSIZE) == page2pa(pp2));
 	assert(pp2->pp_ref == 1);
+
 	assert(*pgdir_walk(kern_pgdir, (void*) PGSIZE, 0) & PTE_U);
 	assert(kern_pgdir[0] & PTE_U);
 
@@ -738,6 +810,7 @@ check_page(void)
 	assert(page_insert(kern_pgdir, pp0, (void*) PTSIZE, PTE_W) < 0);
 
 	// insert pp1 at PGSIZE (replacing pp2)
+//	cprintf("~~w");
 	assert(page_insert(kern_pgdir, pp1, (void*) PGSIZE, PTE_W) == 0);
 	assert(!(*pgdir_walk(kern_pgdir, (void*) PGSIZE, 0) & PTE_U));
 
@@ -745,6 +818,7 @@ check_page(void)
 	assert(check_va2pa(kern_pgdir, 0) == page2pa(pp1));
 	assert(check_va2pa(kern_pgdir, PGSIZE) == page2pa(pp1));
 	// ... and ref counts should reflect this
+//	cprintf("%d %d", pp1->pp_ref, pp2->pp_ref);
 	assert(pp1->pp_ref == 2);
 	assert(pp2->pp_ref == 0);
 
@@ -753,6 +827,7 @@ check_page(void)
 
 	// unmapping pp1 at 0 should keep pp1 at PGSIZE
 	page_remove(kern_pgdir, 0x0);
+	cprintf("~~~");
 	assert(check_va2pa(kern_pgdir, 0x0) == ~0);
 	assert(check_va2pa(kern_pgdir, PGSIZE) == page2pa(pp1));
 	assert(pp1->pp_ref == 1);
