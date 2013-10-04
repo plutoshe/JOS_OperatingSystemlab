@@ -1,14 +1,24 @@
 JOS Lab2 Report
-===================================
+====================================
+Result
+----------------------------
+		running JOS: (1.1s) 
+		Physical page allocator: OK 
+		Page management: OK 
+		Kernel page directory: OK 
+		Page management 2: OK 
+		Score: 70/70
+
 Preparation
 -----------------------------------
 花了一下午学习了git相关的知识，从之前的lab1，转换了branch到了lab2，并merge了lab1分支，将这部分内容重新commit，push到了我现在个人的repository
 Exercise 1
 -----------------------------------
-lab2由于不像JOS lab1那样有这样那样的提示，所以一开始从ics书开始复习，到操统书的这一部分都浏览了一遍，基本上有了一些了解，从张驰的报告中看到了有关的ppt，
+由于不像lab1那样有这样那样的提示，所以一开始从ics书开始复习，到操统书的这一部分都浏览了一遍，基本上有了一些了解，从张驰的报告中看到了有关的ppt，
 接下来基本上是看注释加了解，边尝试边探索的前进。
-在lab2中全是virtual address，要注意转换，PADDR
-exercise1错误
+程序在lab2中全是virtual address，要注意转换，PADDR
+###exercise1
+###exercise1错误
 没有注意到i++是加PGSIZE，所以对于low和top忘记除PGSIZE了
 首先对于pages没有赋值
 EAX=00000000 EBX=00010094 ECX=000003d4 EDX=000003d5
@@ -32,16 +42,16 @@ Triple fault. Halting for inspection via QEMU monitor.
 
 发生上述错误，基本上是空指针错误
 
+ 
 
-
-对于top没有赋值为物理地址
+对于top没有赋值为对应的地址
 kernel panic at kern/pmap.c:502: assertion failed: nfree_extmem > 0
 
 第三个错误
 对于page_free_list在alloc之后没有到放弃这一个页面，到下一个pp_link
 kernel panic at kern/pmap.c:532: assertion failed: pp1 && pp1 != pp0
 
-还是没有注意到程序中的地址都是虚拟地址，在清0的时候直接使用了page_next_list，然后就发现实际的并没有清0，应该使用page2kva
+还是没有注意到程序中的地址都是虚拟地址，对概念没有理解透彻，在清0的时候直接使用了page_next_list，直接对这个节然后就发现实际的并没有清0，应该使用page2kva，转到应有的虚拟地址上
 从memset(page_next_list, 0, PGSIZE)到
 memset(page2kva(page_next_list), 0, PGSIZE)
 从c = page2kva发现这个问题
@@ -52,17 +62,89 @@ exercise 2
 
 exercise 3
 我的qemu好像并没有这些个命令。
-     Q：
-     Assuming that the following JOS kernel code is correct, what type
-     should variable x have, uintptr_t or physaddr_t?
-     mystery_t x;
-     char* value = return_a_pointer();
-     *value = 10;
-     x = (mystery_t) value;
+Q:
+Assuming that the following JOS kernel code is correct, what type
+   	  should variable x have, uintptr_t or physaddr_t?
+   	  mystery_t x;
+   	  char* value = return_a_pointer();
+  	   *value = 10;
+  	   x = (mystery_t) value;
 
 因为the kernel can't sensibly dereference a physical address，所以这个地址是虚拟地址
 
 kernel panic at kern/pmap.c:696: assertion failed: page_insert(kern_pgdir, pp1, 0x0, PTE_W) < 0
+
+ 
+
+exercise 4
+
+由于读到了有关与reference的区别，对于一开始的初始化进行了修改，对于之前那些不能引用的pp_ref设为1
+
+ 
+
+Be careful when using page_alloc. The page it returns will always have a reference count of 0, so pp_ref should be incremented as soon as you've done something with the returned page (like inserting it into a page table). Sometimes this is handled by other functions (for example, page_insert) and sometimes the function calling page_alloc must do it directly.
+
+ 
+
+kernel panic at kern/pmap.c:354: KADDR called with invalid pa f0119000
+
+a + 4 和a[4]不同
+
+ 
+
+kernel panic at kern/pmap.c:775: assertion failed: !page_alloc(0)
+
+没有考虑insert的page跟已有的配对的相同
+
+ 
+
+kernel panic at kern/pmap.c:790: assertion failed: *pgdir_walk(kern_pgdir, (void*) PGSIZE, 0) & PTE_U
+
+在之前nsert的page跟已有的配对的相同，我直接return 0了，没有赋他的权限
+
+// page_remove(now_page);
+if (PTE_ADDR(*now) == page2pa(pp)) {
+// *now = PTE_ADDR(page2pa(pp)) | perm | PTE_P;
+return 0;
+}
+
+kernel panic at kern/pmap.c:821: assertion failed: pp2->pp_ref == 0
+
+这里在insert取到的pte_t和remove时取到的pte_t不同，最后发现是在page_lookup中犯了一个指针的常识错误，在对pte_store赋值的时候，我直接使用了下面的语句
+
+if (pte_store != NULL) {
+pte_store = &now;
+}
+
+但实际上应该是
+
+if (pte_store != NULL) {
+*pte_store = now;
+}
+
+我将传入的指针换了一个地址，所以才会出现这个错误。
+
+
+
+Exercise 5
+
+kernel panic at kern/pmap.c:685: assertion failed: check_va2pa(pgdir, KERNBASE + i) == i
+
+这个错误是在boot_map_region中我写的循环没有考虑到尾地址越界的情况，直接使用了< 号，其实应该使用！=号
+
+uintptr_t end = va + size;
+
+for (;va < end; va += PGSIZE, pa += PGSIZE) {
+
+应该改成
+
+uintptr_t end = va + size;
+
+for (;va ！= end; va += PGSIZE, pa += PGSIZE) {
+
+ 
+
+ 
 
 大标题
 ===================================
