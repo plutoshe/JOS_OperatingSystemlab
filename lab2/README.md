@@ -14,12 +14,12 @@ Preparation
 花了一下午学习了git相关的知识，从之前的lab1，转换了branch到了lab2，并merge了lab1分支，将这部分内容重新commit，push到了我现在个人的repository
 Related Macro and Function
 ------------------------------------
-PGSIZE表页大小
-PTE_U, PTE_P, PTE_W代表有关权限
-PADDR, KADDR分别是返回匹配虚拟地址的物理地址和返回匹配到物理地址的虚拟地址。
-PDX(la), PTX(la), PGOFF(la)代表该线性地址的Page Directory Index, Page Table Index, Page Offset 
-PTE_ADDR(pte)返回该page的入口
-page2pa, pa2page, page2kva这三个函数，
+PGSIZE表页大小 <br />
+PTE_U, PTE_P, PTE_W代表有关权限 <br />
+PADDR, KADDR分别是返回匹配虚拟地址的物理地址和返回匹配到物理地址的虚拟地址。<br />
+PDX(la), PTX(la), PGOFF(la)代表该线性地址的Page Directory Index, Page Table Index, Page Offset <br />
+PTE_ADDR(pte)返回该page的入口 <br />
+page2pa, pa2page, page2kva这三个函数，<br />
 其中page指的是struct PageInfo结构，这3个函数完成了这个结构对物理地址和逻辑地址的相互转换。
 Part 1: Physical Page Management
 =======
@@ -292,7 +292,7 @@ if (pte_store != NULL) {
 	*pte_store = now;
 }
 ```
-我将传入的指针换了一个地址，所以才会出现这个错误。
+我将传入的指针换了一个地址，所以才会出现这个错误。<br />
 上面的大部分错误都是对于指针的错误，所以lab1自以为对于指针有了一个很好的理解，其实并没有理解的特别透彻，这次算是给自己重新认识了一遍指针。
 
 Part 3: Kernel Address Space
@@ -348,10 +348,10 @@ Entry	Base Virtual Address	Points to (logically):
 1	0x00400000	?
 0	0x00000000	[see next question]
 ```
-UPAGES下没有匹配的物理地址
-[UPAGES, ULIM)有相匹配的物理地址，匹配到相应的页面信息
-[KSTACK - KSTACKSIZE, KSTACK)有相匹配的物理地址，匹配到相应的栈
-KERNBASE之上有相匹配的物理地址，匹配到相应的内核地址。
+UPAGES下没有匹配的物理地址 <br />
+[UPAGES, ULIM)有相匹配的物理地址，匹配到相应的页面信息 <br />
+[KSTACK - KSTACKSIZE, KSTACK)有相匹配的物理地址，匹配到相应的栈 <br />
+KERNBASE之上有相匹配的物理地址，匹配到相应的内核地址。 <br />
 
 ```
 Question:
@@ -374,15 +374,19 @@ How much space overhead is there for managing memory, if we actually had the max
 Question:
 Revisit the page table setup in kern/entry.S and kern/entrypgdir.c. Immediately after we turn on paging, EIP is still a low number (a little over 1MB). At what point do we transition to running at an EIP above KERNBASE? What makes it possible for us to continue executing at a low EIP between when we enable paging and when we begin running at an EIP above KERNBASE? Why is this transition necessary?
 ```
+在跳转命令jmp *%eax之后我们有高位的EIP。<br />
+由于程序将 [0, 4MB) 和 [KERNBASE, KERNBASE + 4MB) 均映射到了物理地址的 [0, 4MB) 因此在开启页之后即使为 low EIP，也能继续运行。<br />
+因为我们需要跳转命令这是在low eip 执行，为了保证正确，因此需要这一步。
 
 Challenge
 ----------------
+###Challenge 1
 ```
 Challenge! We consumed many physical pages to hold the page tables for the KERNBASE mapping. Do a more space-efficient job using the PTE_PS ("Page Size") bit in the page directory entries. This bit was not supported in the original 80386, but is supported on more recent x86 processors. You will therefore have to refer to Volume 3 of the current Intel manuals. Make sure you design the kernel to use this optimization only on processors that support it!
 ```
 查阅了相关资料，感觉重写一个有些困难，所以没有做这个challenge
 <br />
-
+###Challenge 2
 ```
 Challenge! Extend the JOS kernel monitor with commands to:
 
@@ -463,7 +467,7 @@ int mon_showmapping(int argc, char **argv, struct Trapframe *tf)
 	return 0;
 }
 ```
-关于这个命令行，我直接使用了pgdir_walk函数来查找他对应的page table，从而找他的物理地址来实现，之后发现可以直接使用PADDR，但由于他的_panic的找不到具体的代码，只是在assert.h中有提及，所以猜测这个只是针对最初步的情况，很有可能他的映射会导致fault，之后在测试栈的映射时候果然发现会触发相应的fault，说明这个函数只是在一开始有用。
+关于这个命令行，我直接使用了pgdir_walk函数来查找他对应的page table，从而找他的物理地址来实现，之后发现可以直接使用PADDR，但由于他的_panic的找不到具体的代码，只是在assert.h中有提及，所以猜测这个只是针对最初步的情况，很有可能他的映射会导致fault，之后在测试栈的映射时候果然发现会触发相应的fault，说明这个函数只是在一开始有用。<br />
 从KADDR也可以看出这点，毕竟他直接减了KERNBASE。下面展示效果，分别查找我们的UPAGES以上的部分，以下的部分，stack的部分这几方面保证正确性。
 ```
 K> showmappings 0xefff0000 0xf0000000
@@ -594,17 +598,21 @@ int mon_dump(int argc, char **argv, struct Trapframe *tf) {
 
 }
 ```
-看逻辑地址的很好做，因为程序里都已经是逻辑地址，直接取他的值就可以了，但是物理地址就不是很清楚怎么做了，我直接使用了KADDR这种可能会导致fault的宏，把它强制先倒成逻辑地址，再直接取值。
-效果
+看逻辑地址的很好做，因为程序里都已经是逻辑地址，直接取他的值就可以了，但是物理地址就不是很清楚怎么做了，我直接使用了KADDR这种可能会导致fault的宏，把它强制先倒成逻辑地址，再直接取值。效果如下：
 ```
-K>  dump v 0xf0000000 0xf0000010
-Va 0xf0000000 : 0xf000ff53
-Va 0xf0000008 : 0xf000e2c3
-Va 0xf0000010 : 0xf000ff53
 K> dump p 0x0 0x10
 pa 0x00000000 : 0xf000ff53
+pa 0x00000004 : 0xf000ff53
 pa 0x00000008 : 0xf000e2c3
+pa 0x0000000c : 0xf000ff53
 pa 0x00000010 : 0xf000ff53
+K> dump v 0xf0000000 0xf0000010
+Va 0xf0000000 : 0xf000ff53
+Va 0xf0000004 : 0xf000ff53
+Va 0xf0000008 : 0xf000e2c3
+Va 0xf000000c : 0xf000ff53
+Va 0xf0000010 : 0xf000ff53
+
 
 ```
 4.PageTable
@@ -619,13 +627,14 @@ int mon_showPT(int argc, char **argv, struct Trapframe *tf) {
 }
 ```
 为了以防万一，我写了一个查找对应的PT的入口的函数
+###Challenge 3
 
 ```
 Challenge! Write up an outline of how a kernel could be designed to allow user environments unrestricted use of the full 4GB virtual and linear address space. Hint: the technique is sometimes known as "follow the bouncing kernel." In your design, be sure to address exactly what has to happen when the processor transitions between kernel and user modes, and how the kernel would accomplish such transitions. Also describe how the kernel would access physical memory and I/O devices in this scheme, and how the kernel would access a user environment's virtual address space during system calls and the like. Finally, think about and describe the advantages and disadvantages of such a scheme in terms of flexibility, performance, kernel complexity, and other factors you can think of.
 ```
 
 关于kernel 在内核态和用户态的转化这一部分内容我还没有想法，估计等到以后对系统认识更深刻的时候，可能对这个会有自己的想法了。
-
+###Challenge 4
 ```
 Challenge! Since our JOS kernel's memory management system only allocates and frees memory on page granularity, we do not have anything comparable to a general-purpose malloc/free facility that we can use within the kernel. This could be a problem if we want to support certain types of I/O devices that require physically contiguous buffers larger than 4KB in size, or if we want user-level environments, and not just the kernel, to be able to allocate and map 4MB superpages for maximum processor efficiency. (See the earlier challenge problem about PTE_PS.)
 Generalize the kernel's memory allocation system to support pages of a variety of power-of-two allocation unit sizes from 4KB up to some reasonable maximum of your choice. Be sure you have some way to divide larger allocation units into smaller ones on demand, and to coalesce multiple small allocation units back into larger units when possible. Think about the issues that might arise in such a system.

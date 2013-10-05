@@ -186,7 +186,7 @@ int mon_showPT(int argc, char **argv, struct Trapframe *tf) {
 	cprintf("Page Table Entry Address : 0x%08x\n", mapper); 
 	return 0;
 }
-#define POINT_SIZE 8
+#define POINT_SIZE 4
 int mon_dump(int argc, char **argv, struct Trapframe *tf) {
 	uint32_t begin, end;
 	if (argc < 3) {

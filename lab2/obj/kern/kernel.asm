@@ -1971,7 +1971,7 @@ f0100d00 <mon_dump>:
 	cprintf("Page Table Entry Address : 0x%08x\n", mapper); 
 	return 0;
 }
-#define POINT_SIZE 8
+#define POINT_SIZE 4
 int mon_dump(int argc, char **argv, struct Trapframe *tf) {
 f0100d00:	55                   	push   %ebp
 f0100d01:	89 e5                	mov    %esp,%ebp
@@ -2071,7 +2071,7 @@ f0100dde:	e8 ab 27 00 00       	call   f010358e <cprintf>
 		}
 		for (;begin <= end; begin += POINT_SIZE)
 f0100de3:	8b 45 f4             	mov    -0xc(%ebp),%eax
-f0100de6:	83 c0 08             	add    $0x8,%eax
+f0100de6:	83 c0 04             	add    $0x4,%eax
 f0100de9:	89 45 f4             	mov    %eax,-0xc(%ebp)
 f0100dec:	39 45 f0             	cmp    %eax,-0x10(%ebp)
 f0100def:	73 ab                	jae    f0100d9c <mon_dump+0x9c>
@@ -2098,7 +2098,7 @@ f0100e13:	e8 76 27 00 00       	call   f010358e <cprintf>
 	} else if (argv[1][0] == 'v') {
 		for (;begin <= end; begin+=POINT_SIZE) {
 f0100e18:	8b 45 f4             	mov    -0xc(%ebp),%eax
-f0100e1b:	83 c0 08             	add    $0x8,%eax
+f0100e1b:	83 c0 04             	add    $0x4,%eax
 f0100e1e:	89 45 f4             	mov    %eax,-0xc(%ebp)
 f0100e21:	39 45 f0             	cmp    %eax,-0x10(%ebp)
 f0100e24:	73 dc                	jae    f0100e02 <mon_dump+0x102>
