@@ -348,22 +348,28 @@ Entry	Base Virtual Address	Points to (logically):
 1	0x00400000	?
 0	0x00000000	[see next question]
 ```
+UPAGES下没有匹配的物理地址
+[UPAGES, ULIM)有相匹配的物理地址，匹配到相应的页面信息
+[KSTACK - KSTACKSIZE, KSTACK)有相匹配的物理地址，匹配到相应的栈
+KERNBASE之上有相匹配的物理地址，匹配到相应的内核地址。
 
 ```
 Question:
 (From Lecture 3) We have placed the kernel and user environment in the same address space. Why will user programs not be able to read or write the kernel's memory? What specific mechanisms protect the kernel memory?
 ```
 在这一段中我们只给了用户可读的权限，及PTE_U，用户是不被允许修改此处的代码的，从而带到了保护的目的。
+<br />
 ```
 Question:
 What is the maximum amount of physical memory that this operating system can support? Why?
 ```
-根据PTSIZE，算出PGSIZE*NPTENTRIES/sizeof(struct PageInfo)为512KB(sizeof(struct PageInfo)为8kb）,所以每个Page Table对应一个PGSIZE的页大约为2G
+因为UPAGES物理地址处存放的就是相关的PAGE，存放的结构为Page Info结构，占用的空间为8b，根据PTSIZE，算出PGSIZE*NPTENTRIES/sizeof(struct PageInfo)为512KB, 所以每个Page Table对应一个PGSIZE的页空间大约为2G
+<br />
 ```
 Question:
 How much space overhead is there for managing memory, if we actually had the maximum amount of physical memory? How is this overhead broken down?
 ```
-
+一般物理地址为4G，所以page table就为4M，所需的struct PageInfo为8M+8kb，总共大约12M
 ```
 Question:
 Revisit the page table setup in kern/entry.S and kern/entrypgdir.c. Immediately after we turn on paging, EIP is still a low number (a little over 1MB). At what point do we transition to running at an EIP above KERNBASE? What makes it possible for us to continue executing at a low EIP between when we enable paging and when we begin running at an EIP above KERNBASE? Why is this transition necessary?
@@ -375,7 +381,182 @@ Challenge
 Challenge! We consumed many physical pages to hold the page tables for the KERNBASE mapping. Do a more space-efficient job using the PTE_PS ("Page Size") bit in the page directory entries. This bit was not supported in the original 80386, but is supported on more recent x86 processors. You will therefore have to refer to Volume 3 of the current Intel manuals. Make sure you design the kernel to use this optimization only on processors that support it!
 ```
 查阅了相关资料，感觉重写一个有些困难，所以没有做这个challenge
+<br />
 
+```
+Challenge! Extend the JOS kernel monitor with commands to:
+
+Display in a useful and easy-to-read format all of the physical page mappings (or lack thereof) that apply to a particular range of virtual/linear addresses in the currently active address space. For example, you might enter 'showmappings 0x3000 0x5000' to display the physical page mappings and corresponding permission bits that apply to the pages at virtual addresses 0x3000, 0x4000, and 0x5000.
+Explicitly set, clear, or change the permissions of any mapping in the current address space.
+Dump the contents of a range of memory given either a virtual or physical address range. Be sure the dump code behaves correctly when the range extends across page boundaries!
+Do anything else that you think might be useful later for debugging the kernel. (There's a good chance it will be!)
+```
+实现了相关的命令行，由于地址是16进制的所以需要写一个转换进制的函数，其中判断了是否是个无效的地址，由于需要这一步所以加入了一个ptoi的函数
+```
+uint32_t xtoi(char* origin, bool* check) {
+	uint32_t i = 0, temp = 0, len = strlen(origin);
+	*check = true;
+	if ((origin[0] != '0') || (origin[1] != 'x' && origin[1] != 'X')) 
+	{
+		*check = false;
+		return -1;
+	}
+	for (i = 2; i < len; i++) {
+		temp *= 16;
+		if (origin[i] >= '0' && origin[i] <= '9')
+			temp += origin[i] - '0';
+		else if (origin[i] >= 'a' && origin[i] <= 'f')
+			temp += origin[i] - 'a' + 10;
+		else if (origin[i] >= 'A' && origin[i] <= 'F')
+			temp += origin[i] - 'A' + 10;
+		else {
+			*check = false;
+			return -1;
+		}
+	}
+	return temp;
+}
+
+bool pxtoi(uint32_t *va, char *origin) {
+	bool check = true;
+	*va = xtoi(origin, &check);
+	if (!check) {
+		cprintf("Address typing error\n");
+		return false;
+	}
+	return true;
+}
+
+```
+于此同时为了方便，所以加入了相应的permissiong的输出代码。
+```
+void printPermission(pte_t now) {
+	cprintf("PTE_U : %d ", ((now & PTE_U) != 0));
+	cprintf("PTE_W : %d ", ((now & PTE_W) != 0));
+	cprintf("PTE_P : %d ", ((now & PTE_P) != 0));
+}
+```
+1.showmapping
+```
+int mon_showmapping(int argc, char **argv, struct Trapframe *tf) 
+{
+	uintptr_t begin, end;
+	if (!pxtoi(&begin, argv[1])) return 0;
+	if (!pxtoi(&end, argv[2])) return 0;
+	begin = ROUNDUP(begin, PGSIZE); 
+	end   = ROUNDUP(end, PGSIZE);
+	for (;begin <= end; begin += PGSIZE) {
+		pte_t *mapper = pgdir_walk(kern_pgdir, (void*) begin, 1);
+		cprintf("VA 0x%08x : ", begin);
+		if (mapper != NULL) {
+			if (*mapper & PTE_P) {
+				cprintf("mapping 0x%08x ", PTE_ADDR(*mapper));//, PADDR((void*)begin));
+				printPermission((pte_t)*mapper);
+				cprintf("\n");
+			} else {
+				cprintf("page not mapping\n");
+			}
+		} else {
+			panic("error, out of memory");
+		}
+	}
+	return 0;
+}
+```
+关于这个命令行，我直接使用了pgdir_walk函数来查找他对应的page table，从而找他的物理地址来实现，之后发现可以直接使用PADDR，但由于他的_panic的找不到具体的代码，只是在assert.h中有提及，所以猜测这个只是针对最初步的情况，很有可能他的映射会导致fault，之后在测试栈的映射时候果然发现会触发相应的fault，说明这个函数只是在一开始有用。
+从KADDR也可以看出这点，毕竟他直接减了KERNBASE。下面展示效果，分别查找我们的UPAGES以上的部分，以下的部分，stack的部分这几方面保证正确性。
+```
+K> showmappings 0xefff0000 0xf0000000
+VA 0xefff0000 : page not mapping
+VA 0xefff1000 : page not mapping
+VA 0xefff2000 : page not mapping
+VA 0xefff3000 : page not mapping
+VA 0xefff4000 : page not mapping
+VA 0xefff5000 : page not mapping
+VA 0xefff6000 : page not mapping
+VA 0xefff7000 : page not mapping
+VA 0xefff8000 : mapping 0x0010f000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xefff9000 : mapping 0x00110000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xefffa000 : mapping 0x00111000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xefffb000 : mapping 0x00112000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xefffc000 : mapping 0x00113000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xefffd000 : mapping 0x00114000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xefffe000 : mapping 0x00115000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xeffff000 : mapping 0x00116000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf0000000 : mapping 0x00000000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+K> showmappings 0xe0000000 0xe000f000
+VA 0xe0000000 : page not mapping
+VA 0xe0001000 : page not mapping
+VA 0xe0002000 : page not mapping
+VA 0xe0003000 : page not mapping
+VA 0xe0004000 : page not mapping
+VA 0xe0005000 : page not mapping
+VA 0xe0006000 : page not mapping
+VA 0xe0007000 : page not mapping
+VA 0xe0008000 : page not mapping
+VA 0xe0009000 : page not mapping
+VA 0xe000a000 : page not mapping
+VA 0xe000b000 : page not mapping
+VA 0xe000c000 : page not mapping
+VA 0xe000d000 : page not mapping
+VA 0xe000e000 : page not mapping
+VA 0xe000f000 : page not mapping
+K> showmappings 0xf0000000 0xf000f000
+VA 0xf0000000 : mapping 0x00000000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf0001000 : mapping 0x00001000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf0002000 : mapping 0x00002000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf0003000 : mapping 0x00003000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf0004000 : mapping 0x00004000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf0005000 : mapping 0x00005000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf0006000 : mapping 0x00006000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf0007000 : mapping 0x00007000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf0008000 : mapping 0x00008000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf0009000 : mapping 0x00009000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf000a000 : mapping 0x0000a000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf000b000 : mapping 0x0000b000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf000c000 : mapping 0x0000c000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf000d000 : mapping 0x0000d000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf000e000 : mapping 0x0000e000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+VA 0xf000f000 : mapping 0x0000f000 PTE_U : 0 PTE_W : 1 PTE_P : 1 
+```
+2.setPermission
+```
+int mon_changePermission(int argc, char **argv, struct Trapframe *tf) 
+{
+	bool check = true;
+	if (argc < 2) {
+		cprintf("invalid number of parameters\n");
+		return 0;
+	}
+	uintptr_t va = xtoi(argv[1], &check);
+	if (!check) {
+		cprintf("Address typing error\n");
+		return 0;
+	}
+	pte_t* mapper = pgdir_walk(kern_pgdir, (void*) va, 1);
+	if (!mapper) 
+		panic("error, out of memory");
+	physaddr_t pa = PTE_ADDR(*mapper);
+	int perm = 0;
+	//PTE_U PET_W PTE_P
+	if (argc != 2) {
+		if (argc != 5) {
+			cprintf("invalid number of parameters\n");
+			return 0;
+		}
+		if (argv[2][0] == '1') perm |= PTE_U;
+		if (argv[3][0] == '1') perm |= PTE_W;
+		if (argv[4][0] == '1') perm |= PTE_P;
+	}
+//	boot_map_region(kern_pgdir, va, PGSIZE, pa, perm);	
+	cprintf("before change "); printPermission(*mapper); cprintf("\n");
+	
+	*mapper = PTE_ADDR(*mapper) | perm;
+	cprintf("after change ");  printPermission(*mapper); cprintf("\n");
+	return 0;
+}
+```
+接下来实现了相应的设置权限的命令行，一开始使用了boot_map_region函数，但发现这个函数是个本地函数，所以换成了直接对于他的物理地址的权限进行赋值。当缺省时，我默认为权限clear操作。下面是效果。
 ```
 K> setp 0x100000
 before change PTE_U : 0 PTE_W : 0 PTE_P : 0 
@@ -387,93 +568,68 @@ K> setp 0x1000000 0 1 0
 before change PTE_U : 1 PTE_W : 1 PTE_P : 1 
 after change PTE_U : 0 PTE_W : 1 PTE_P : 0 
 ```
+3.dump
+```
+int mon_dump(int argc, char **argv, struct Trapframe *tf) {
+	uint32_t begin, end;
+	if (argc < 3) {
+		cprintf("invalid command\n");
+		return 0;
+	}
+	if (!pxtoi(&begin, argv[2])) return 0;
+	if (!pxtoi(&end, argv[3])) return 0;
+	if (argv[1][0] == 'p') {
+		if (PGNUM(end) >= npages || PGNUM(end) >= npages){
+			cprintf("out of memory\n");
+			return 0;	
+		}
+		for (;begin <= end; begin += POINT_SIZE)
+			cprintf("pa 0x%08x : 0x%08x\n", begin, *((uint32_t*)KADDR(begin)));
+	} else if (argv[1][0] == 'v') {
+		for (;begin <= end; begin+=POINT_SIZE) {
+			cprintf("Va 0x%08x : 0x%08x\n", begin, *((uint32_t*)begin));
+		}
+	} else cprintf("invalid command\n");
+	return 0;
 
+}
+```
+看逻辑地址的很好做，因为程序里都已经是逻辑地址，直接取他的值就可以了，但是物理地址就不是很清楚怎么做了，我直接使用了KADDR这种可能会导致fault的宏，把它强制先倒成逻辑地址，再直接取值。
+效果
+```
+K>  dump v 0xf0000000 0xf0000010
+Va 0xf0000000 : 0xf000ff53
+Va 0xf0000008 : 0xf000e2c3
+Va 0xf0000010 : 0xf000ff53
+K> dump p 0x0 0x10
+pa 0x00000000 : 0xf000ff53
+pa 0x00000008 : 0xf000e2c3
+pa 0x00000010 : 0xf000ff53
 
 ```
-Challenge! Extend the JOS kernel monitor with commands to:
-
-Display in a useful and easy-to-read format all of the physical page mappings (or lack thereof) that apply to a particular range of virtual/linear addresses in the currently active address space. For example, you might enter 'showmappings 0x3000 0x5000' to display the physical page mappings and corresponding permission bits that apply to the pages at virtual addresses 0x3000, 0x4000, and 0x5000.
-Explicitly set, clear, or change the permissions of any mapping in the current address space.
-Dump the contents of a range of memory given either a virtual or physical address range. Be sure the dump code behaves correctly when the range extends across page boundaries!
-Do anything else that you think might be useful later for debugging the kernel. (There's a good chance it will be!)
+4.PageTable
 ```
+int mon_showPT(int argc, char **argv, struct Trapframe *tf) {
+	uintptr_t va;
+	if (!pxtoi(&va, argv[1])) return 0;
+	
+	pte_t *mapper = pgdir_walk(kern_pgdir, (void*) ((va >> PDXSHIFT) << PDXSHIFT), 1);
+	cprintf("Page Table Entry Address : 0x%08x\n", mapper); 
+	return 0;
+}
+```
+为了以防万一，我写了一个查找对应的PT的入口的函数
 
 ```
 Challenge! Write up an outline of how a kernel could be designed to allow user environments unrestricted use of the full 4GB virtual and linear address space. Hint: the technique is sometimes known as "follow the bouncing kernel." In your design, be sure to address exactly what has to happen when the processor transitions between kernel and user modes, and how the kernel would accomplish such transitions. Also describe how the kernel would access physical memory and I/O devices in this scheme, and how the kernel would access a user environment's virtual address space during system calls and the like. Finally, think about and describe the advantages and disadvantages of such a scheme in terms of flexibility, performance, kernel complexity, and other factors you can think of.
 ```
 
+关于kernel 在内核态和用户态的转化这一部分内容我还没有想法，估计等到以后对系统认识更深刻的时候，可能对这个会有自己的想法了。
+
 ```
 Challenge! Since our JOS kernel's memory management system only allocates and frees memory on page granularity, we do not have anything comparable to a general-purpose malloc/free facility that we can use within the kernel. This could be a problem if we want to support certain types of I/O devices that require physically contiguous buffers larger than 4KB in size, or if we want user-level environments, and not just the kernel, to be able to allocate and map 4MB superpages for maximum processor efficiency. (See the earlier challenge problem about PTE_PS.)
 Generalize the kernel's memory allocation system to support pages of a variety of power-of-two allocation unit sizes from 4KB up to some reasonable maximum of your choice. Be sure you have some way to divide larger allocation units into smaller ones on demand, and to coalesce multiple small allocation units back into larger units when possible. Think about the issues that might arise in such a system.
 ```
- 
+可以使用伙伴系统，把内存分为1，2，4这种2的幂次的多条空间块链，在请求空间时，向上取最近的2的幂次的块，假设为2^k，如果不存在的话，再不断往上找离的最近的空闲块，假设为2^j。然后使用j递归不断切成2半，直到有一个2^k的空闲块，其他的空闲块加入相应的链，如果存在同等的块的化，就合并往上，但这样做的缺点是会产生很多内部碎片。
 
-大标题
-===================================
-  大标题一般显示工程名,类似html的\<h1\><br />
-  你只要在标题下面跟上=====即可
 
-  
-中标题
------------------------------------
-  中标题一般显示重点项,类似html的\<h2\><br />
-  你只要在标题下面输入------即可
-  
-### 小标题
-  小标题类似html的\<h3\><br />
-  小标题的格式如下 ### 小标题<br />
-  注意#和标题字符中间要有空格
-
-### 注意!!!下面所有语法的提示我都先用小标题提醒了!!! 
-
-### 单行文本框
-    这是一个单行的文本框,只要两个Tab再输入文字即可
-        
-### 多行文本框  
-    这是一个有多行的文本框
-    你可以写入代码等,每行文字只要输入两个Tab再输入文字即可
-    这里你可以输入一段代码
-
-### 比如我们可以在多行文本框里输入一段代码,来一个Java版本的HelloWorld吧
-    public class HelloWorld {
-
-      /**
-      * @param args
-   */
-   public static void main(String[] args) {
-   System.out.println("HelloWorld!");
-
-   }
-
-    }
-### 链接
-1.[点击这里你可以链接到www.google.com](http://www.google.com)<br />
-2.[点击这里我你可以链接到我的博客](http://guoyunsky.iteye.com)<br />
-
-###只是显示图片
-![github](http://github.com/unicorn.png "github")
-
-###想点击某个图片进入一个网页,比如我想点击github的icorn然后再进入www.github.com
-[![image]](http://www.github.com/)
-[image]: http://github.com/github.png "github"
-
-### 文字被些字符包围
-> 文字被些字符包围
->
-> 只要再文字前面加上>空格即可
->
-> 如果你要换行的话,新起一行,输入>空格即可,后面不接文字
-> 但> 只能放在行首才有效
-
-### 文字被些字符包围,多重包围
-> 文字被些字符包围开始
->
-> > 只要再文字前面加上>空格即可
->
->  > > 如果你要换行的话,新起一行,输入>空格即可,后面不接文字
->
-> > > > 但> 只能放在行首才有效
-
-### 特殊字符处理
-有一些特殊字符如<,#等,只要在特殊字符前面加上转义字符\即可<br />
-你想换行的话其实可以直接用html标签\<br /\>

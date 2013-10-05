@@ -36,8 +36,10 @@ static struct Command commands[] = {
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
 	{ "setcolor", "set the color for text", mon_setcolor },
 	{ "backtrace", "Display information about ebp & eip", mon_backtrace },
-	{ "showmappings", "DisPlay the physical page mappings and corresponding permission bits that apply to the pages\n showmappings a b, display the information from a to b", mon_showmapping },
-	{ "setp", "setp Permission, Clear the address's permission by default\n setp va PTE_U PTE_W PTE_W", mon_changePermission }
+	{ "showmappings", "DisPlay the physical page mappings and corresponding permission bits that apply to the pages\n               showmappings a b, display the information from a to b", mon_showmapping },
+	{ "setp", "setp Permission, Clear the address's permission by default\n       setp va PTE_U PTE_W PTE_W", mon_changePermission },
+	{ "dump", "dump the virtual or physical address of the memory", mon_dump },
+	{ "PT", "show the page table of given address", mon_showPT }
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
@@ -114,7 +116,7 @@ uint32_t xtoi(char* origin, bool* check) {
 	*check = true;
 	if ((origin[0] != '0') || (origin[1] != 'x' && origin[1] != 'X')) 
 	{
-		check = false;
+		*check = false;
 		return -1;
 	}
 	for (i = 2; i < len; i++) {
@@ -126,25 +128,32 @@ uint32_t xtoi(char* origin, bool* check) {
 		else if (origin[i] >= 'A' && origin[i] <= 'F')
 			temp += origin[i] - 'A' + 10;
 		else {
-			check = false;
+			*check = false;
 			return -1;
 		}
 	}
 	return temp;
 }
 
+bool pxtoi(uint32_t *va, char *origin) {
+	bool check = true;
+	*va = xtoi(origin, &check);
+	if (!check) {
+		cprintf("Address typing error\n");
+		return false;
+	}
+	return true;
+}
+
 int mon_changePermission(int argc, char **argv, struct Trapframe *tf) 
 {
-	bool check = true;
 	if (argc < 2) {
 		cprintf("invalid number of parameters\n");
 		return 0;
 	}
-	uintptr_t va = xtoi(argv[1], &check);
-	if (!check) {
-		cprintf("Address typing error\n");
-		return 0;
-	}
+	uintptr_t va;
+	if (!pxtoi(&va,argv[1]))	return 0;
+	
 	pte_t* mapper = pgdir_walk(kern_pgdir, (void*) va, 1);
 	if (!mapper) 
 		panic("error, out of memory");
@@ -167,29 +176,54 @@ int mon_changePermission(int argc, char **argv, struct Trapframe *tf)
 	cprintf("after change ");  printPermission(*mapper); cprintf("\n");
 	return 0;
 }
-int mon_showvm(int argc, char **argv, struct Trapframe *tf) {
+
+
+int mon_showPT(int argc, char **argv, struct Trapframe *tf) {
+	uintptr_t va;
+	if (!pxtoi(&va, argv[1])) return 0;
+	
+	pte_t *mapper = pgdir_walk(kern_pgdir, (void*) ((va >> PDXSHIFT) << PDXSHIFT), 1);
+	cprintf("Page Table Entry Address : 0x%08x\n", mapper); 
 	return 0;
 }
-int mon_show(int argc, char **argv, struct Trapframe *tf) {
+#define POINT_SIZE 8
+int mon_dump(int argc, char **argv, struct Trapframe *tf) {
+	uint32_t begin, end;
+	if (argc < 3) {
+		cprintf("invalid command\n");
+		return 0;
+	}
+	if (!pxtoi(&begin, argv[2])) return 0;
+	if (!pxtoi(&end, argv[3])) return 0;
+	if (argv[1][0] == 'p') {
+		if (PGNUM(end) >= npages || PGNUM(end) >= npages){
+			cprintf("out of memory\n");
+			return 0;	
+		}
+		for (;begin <= end; begin += POINT_SIZE)
+			cprintf("pa 0x%08x : 0x%08x\n", begin, *((uint32_t*)KADDR(begin)));
+	} else if (argv[1][0] == 'v') {
+		for (;begin <= end; begin+=POINT_SIZE) {
+			cprintf("Va 0x%08x : 0x%08x\n", begin, *((uint32_t*)begin));
+		}
+	} else cprintf("invalid command\n");
 	return 0;
+
 }
 int mon_showmapping(int argc, char **argv, struct Trapframe *tf) 
 {
 	uintptr_t begin, end;
-	bool check1, check2;
-	begin = xtoi(argv[1], &check1); end = xtoi(argv[2], &check2);
-	if (!check1 || !check2) {
-		cprintf("Address typing error\n");
-		return 0;
-	}
+	if (!pxtoi(&begin, argv[1])) return 0;
+//	cprintf("%d", !pxtoi(&begin, argv[1]));
+	if (!pxtoi(&end, argv[2])) return 0;
 	begin = ROUNDUP(begin, PGSIZE); 
 	end   = ROUNDUP(end, PGSIZE);
 	for (;begin <= end; begin += PGSIZE) {
 		pte_t *mapper = pgdir_walk(kern_pgdir, (void*) begin, 1);
-		cprintf("VA %x : ", begin);
+		cprintf("VA 0x%08x : ", begin);
 		if (mapper != NULL) {
 			if (*mapper & PTE_P) {
-				cprintf("mapping %x %x", PTE_ADDR(*mapper), PADDR((void*)begin));
+				cprintf("mapping 0x%08x ", PTE_ADDR(*mapper));//, PADDR((void*)begin));
 				printPermission((pte_t)*mapper);
 				cprintf("\n");
 			} else {
