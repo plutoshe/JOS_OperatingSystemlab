@@ -259,6 +259,7 @@ page_init(void)
 	size_t i;
 	size_t low = IOPHYSMEM / PGSIZE;	
 	size_t top = (PADDR(boot_alloc(0))) / PGSIZE;
+	cprintf("!!%d %d %d\n", npages, low, top);
 //	cprintf("00");
 	page_free_list = NULL;
 	for (i = 0; i < npages; i++) {

@@ -12,6 +12,15 @@ Result
 Preparation
 -----------------------------------
 花了一下午学习了git相关的知识，从之前的lab1，转换了branch到了lab2，并merge了lab1分支，将这部分内容重新commit，push到了我现在个人的repository
+Related Macro and Function
+------------------------------------
+PGSIZE表页大小
+PTE_U, PTE_P, PTE_W代表有关权限
+PADDR, KADDR分别是返回匹配虚拟地址的物理地址和返回匹配到物理地址的虚拟地址。
+PDX(la), PTX(la), PGOFF(la)代表该线性地址的Page Directory Index, Page Table Index, Page Offset 
+PTE_ADDR(pte)返回该page的入口
+page2pa, pa2page, page2kva这三个函数，
+其中page指的是struct PageInfo结构，这3个函数完成了这个结构对物理地址和逻辑地址的相互转换。
 Part 1: Physical Page Management
 =======
 Exercise 1
@@ -339,16 +348,19 @@ Entry	Base Virtual Address	Points to (logically):
 1	0x00400000	?
 0	0x00000000	[see next question]
 ```
+
 ```
 Question:
 (From Lecture 3) We have placed the kernel and user environment in the same address space. Why will user programs not be able to read or write the kernel's memory? What specific mechanisms protect the kernel memory?
 ```
 在这一段中我们只给了用户可读的权限，及PTE_U，用户是不被允许修改此处的代码的，从而带到了保护的目的。
+<br />
 ```
 Question:
 What is the maximum amount of physical memory that this operating system can support? Why?
 ```
-256MB，因为JOS只有这么大的内存。
+根据PTSIZE，算出PGSIZE*NPTENTRIES/sizeof(struct PageInfo)为512KB(sizeof(struct PageInfo)为8kb）,所以每个Page Table对应一个PGSIZE的页大约为2G
+<br />
 ```
 Question:
 How much space overhead is there for managing memory, if we actually had the maximum amount of physical memory? How is this overhead broken down?
@@ -357,6 +369,44 @@ How much space overhead is there for managing memory, if we actually had the max
 ```
 Question:
 Revisit the page table setup in kern/entry.S and kern/entrypgdir.c. Immediately after we turn on paging, EIP is still a low number (a little over 1MB). At what point do we transition to running at an EIP above KERNBASE? What makes it possible for us to continue executing at a low EIP between when we enable paging and when we begin running at an EIP above KERNBASE? Why is this transition necessary?
+```
+
+Challenge
+----------------
+```
+Challenge! We consumed many physical pages to hold the page tables for the KERNBASE mapping. Do a more space-efficient job using the PTE_PS ("Page Size") bit in the page directory entries. This bit was not supported in the original 80386, but is supported on more recent x86 processors. You will therefore have to refer to Volume 3 of the current Intel manuals. Make sure you design the kernel to use this optimization only on processors that support it!
+```
+查阅了相关资料，感觉重写一个有些困难，所以没有做这个challenge
+<br />
+```
+K> setp 0x100000
+before change PTE_U : 0 PTE_W : 0 PTE_P : 0 
+after change PTE_U : 0 PTE_W : 0 PTE_P : 0 
+K> setp 0x1000000 1 1 1
+before change PTE_U : 0 PTE_W : 0 PTE_P : 0 
+after change PTE_U : 1 PTE_W : 1 PTE_P : 1 
+K> setp 0x1000000 0 1 0
+before change PTE_U : 1 PTE_W : 1 PTE_P : 1 
+after change PTE_U : 0 PTE_W : 1 PTE_P : 0 
+```
+
+
+```
+Challenge! Extend the JOS kernel monitor with commands to:
+
+Display in a useful and easy-to-read format all of the physical page mappings (or lack thereof) that apply to a particular range of virtual/linear addresses in the currently active address space. For example, you might enter 'showmappings 0x3000 0x5000' to display the physical page mappings and corresponding permission bits that apply to the pages at virtual addresses 0x3000, 0x4000, and 0x5000.
+Explicitly set, clear, or change the permissions of any mapping in the current address space.
+Dump the contents of a range of memory given either a virtual or physical address range. Be sure the dump code behaves correctly when the range extends across page boundaries!
+Do anything else that you think might be useful later for debugging the kernel. (There's a good chance it will be!)
+```
+
+```
+Challenge! Write up an outline of how a kernel could be designed to allow user environments unrestricted use of the full 4GB virtual and linear address space. Hint: the technique is sometimes known as "follow the bouncing kernel." In your design, be sure to address exactly what has to happen when the processor transitions between kernel and user modes, and how the kernel would accomplish such transitions. Also describe how the kernel would access physical memory and I/O devices in this scheme, and how the kernel would access a user environment's virtual address space during system calls and the like. Finally, think about and describe the advantages and disadvantages of such a scheme in terms of flexibility, performance, kernel complexity, and other factors you can think of.
+```
+
+```
+Challenge! Since our JOS kernel's memory management system only allocates and frees memory on page granularity, we do not have anything comparable to a general-purpose malloc/free facility that we can use within the kernel. This could be a problem if we want to support certain types of I/O devices that require physically contiguous buffers larger than 4KB in size, or if we want user-level environments, and not just the kernel, to be able to allocate and map 4MB superpages for maximum processor efficiency. (See the earlier challenge problem about PTE_PS.)
+Generalize the kernel's memory allocation system to support pages of a variety of power-of-two allocation unit sizes from 4KB up to some reasonable maximum of your choice. Be sure you have some way to divide larger allocation units into smaller ones on demand, and to coalesce multiple small allocation units back into larger units when possible. Think about the issues that might arise in such a system.
 ```
  
 

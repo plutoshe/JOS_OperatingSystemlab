@@ -10,6 +10,7 @@
 #include <kern/console.h>
 #include <kern/monitor.h>
 #include <kern/kdebug.h>
+#include <kern/pmap.h>
 
 #define CMDBUF_SIZE	80	// enough for one VGA text line
 #define COLOR_WHT 7;
@@ -34,7 +35,9 @@ static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
 	{ "setcolor", "set the color for text", mon_setcolor },
-	{ "backtrace", "Display information about ebp & eip", mon_backtrace}
+	{ "backtrace", "Display information about ebp & eip", mon_backtrace },
+	{ "showmappings", "DisPlay the physical page mappings and corresponding permission bits that apply to the pages\n showmappings a b, display the information from a to b", mon_showmapping },
+	{ "setp", "setp Permission, Clear the address's permission by default\n setp va PTE_U PTE_W PTE_W", mon_changePermission }
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
@@ -97,6 +100,105 @@ int mon_setcolor(int argc, char **argv, struct Trapframe *tf) {
 	else ch_color=COLOR_WHT;
 	set_attribute_color((uint64_t) ch_color, (uint64_t) ch_color1);
 	cprintf("console back-color :  %d \n        fore-color :  %d\n", ch_color, ch_color1);	
+	return 0;
+}
+
+void printPermission(pte_t now) {
+	cprintf("PTE_U : %d ", ((now & PTE_U) != 0));
+	cprintf("PTE_W : %d ", ((now & PTE_W) != 0));
+	cprintf("PTE_P : %d ", ((now & PTE_P) != 0));
+}
+
+uint32_t xtoi(char* origin, bool* check) {
+	uint32_t i = 0, temp = 0, len = strlen(origin);
+	*check = true;
+	if ((origin[0] != '0') || (origin[1] != 'x' && origin[1] != 'X')) 
+	{
+		check = false;
+		return -1;
+	}
+	for (i = 2; i < len; i++) {
+		temp *= 16;
+		if (origin[i] >= '0' && origin[i] <= '9')
+			temp += origin[i] - '0';
+		else if (origin[i] >= 'a' && origin[i] <= 'f')
+			temp += origin[i] - 'a' + 10;
+		else if (origin[i] >= 'A' && origin[i] <= 'F')
+			temp += origin[i] - 'A' + 10;
+		else {
+			check = false;
+			return -1;
+		}
+	}
+	return temp;
+}
+
+int mon_changePermission(int argc, char **argv, struct Trapframe *tf) 
+{
+	bool check = true;
+	if (argc < 2) {
+		cprintf("invalid number of parameters\n");
+		return 0;
+	}
+	uintptr_t va = xtoi(argv[1], &check);
+	if (!check) {
+		cprintf("Address typing error\n");
+		return 0;
+	}
+	pte_t* mapper = pgdir_walk(kern_pgdir, (void*) va, 1);
+	if (!mapper) 
+		panic("error, out of memory");
+	physaddr_t pa = PTE_ADDR(*mapper);
+	int perm = 0;
+	//PTE_U PET_W PTE_P
+	if (argc != 2) {
+		if (argc != 5) {
+			cprintf("invalid number of parameters\n");
+			return 0;
+		}
+		if (argv[2][0] == '1') perm |= PTE_U;
+		if (argv[3][0] == '1') perm |= PTE_W;
+		if (argv[4][0] == '1') perm |= PTE_P;
+	}
+//	boot_map_region(kern_pgdir, va, PGSIZE, pa, perm);	
+	cprintf("before change "); printPermission(*mapper); cprintf("\n");
+	
+	*mapper = PTE_ADDR(*mapper) | perm;
+	cprintf("after change ");  printPermission(*mapper); cprintf("\n");
+	return 0;
+}
+int mon_showvm(int argc, char **argv, struct Trapframe *tf) {
+	return 0;
+}
+int mon_show(int argc, char **argv, struct Trapframe *tf) {
+	return 0;
+}
+int mon_showmapping(int argc, char **argv, struct Trapframe *tf) 
+{
+	uintptr_t begin, end;
+	bool check1, check2;
+	begin = xtoi(argv[1], &check1); end = xtoi(argv[2], &check2);
+	if (!check1 || !check2) {
+		cprintf("Address typing error\n");
+		return 0;
+	}
+	begin = ROUNDUP(begin, PGSIZE); 
+	end   = ROUNDUP(end, PGSIZE);
+	for (;begin <= end; begin += PGSIZE) {
+		pte_t *mapper = pgdir_walk(kern_pgdir, (void*) begin, 1);
+		cprintf("VA %x : ", begin);
+		if (mapper != NULL) {
+			if (*mapper & PTE_P) {
+				cprintf("mapping %x %x", PTE_ADDR(*mapper), PADDR((void*)begin));
+				printPermission((pte_t)*mapper);
+				cprintf("\n");
+			} else {
+				cprintf("page not mapping\n");
+			}
+		} else {
+			panic("error, out of memory");
+		}
+	}
 	return 0;
 }
 
