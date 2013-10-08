@@ -4,11 +4,17 @@
 ./kernel.h
 ./console.h
 ./monitor.c
+./syscall.c
+./env.c
 ./entrypgdir.c
 ./kclock.h
 ./kdebug.c
+./trap.h
 ./pmap.h
 ./kdebug.h
+./env.h
+./syscall.h
 ./printf.c
 ./kclock.c
 ./pmap.c
+./trap.c
