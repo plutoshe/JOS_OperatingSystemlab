@@ -10,11 +10,8 @@
 #include <kern/console.h>
 #include <kern/monitor.h>
 #include <kern/kdebug.h>
-<<<<<<< HEAD
 #include <kern/trap.h>
-=======
 #include <kern/pmap.h>
->>>>>>> lab2
 
 #define CMDBUF_SIZE	80	// enough for one VGA text line
 #define COLOR_WHT 7;
@@ -339,16 +336,9 @@ monitor(struct Trapframe *tf)
 
 	cprintf("Welcome to the JOS kernel monitor!\n");
 	cprintf("Type 'help' for a list of commands.\n");
-<<<<<<< HEAD
 
 	if (tf != NULL)
 		print_trapframe(tf);
-=======
-//	int x = 1, y = 3, z = 4;
-  //	cprintf("x %d, y %x, z %d\n", x, y, z);
-//	unsigned int i = 0x00646c72;
-//	cprintf("H%x Wo%s", 57616, &i);
->>>>>>> lab2
 
 	while (1) {
 		buf = readline("K> ");
