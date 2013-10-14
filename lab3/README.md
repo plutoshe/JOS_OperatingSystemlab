@@ -15,4 +15,6 @@ mem_init():
 	envs = (struct Env*) boot_alloc(NENV * sizeof(struct Env));
 	boot_map_region(kern_pgdir, UENVS, ROUNDUP(NENV * sizeof(struct Env), PGSIZE), PADDR(envs), PTE_U | PTE_P);
 ```
- 
+exercise 2
+--------------
+###exercise 2解答 

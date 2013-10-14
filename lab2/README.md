@@ -234,6 +234,7 @@ page_remove():
 		}
 		*now = 0;
 	}
+	tlb_invalidate(pgdir, va);
 
 ```
 page_insert():
