@@ -31,3 +31,7 @@ Program received signal SIGTRAP, Trace/breakpoint trap.
 exercise 3
 --------------
 ###exercise 3解答
+仔细阅读了相关文档，学到了很多知识~~~
+exercise 4
+--------------
+###exercise 4解答
