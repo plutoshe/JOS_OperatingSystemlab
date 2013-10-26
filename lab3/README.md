@@ -18,3 +18,16 @@ mem_init():
 exercise 2
 --------------
 ###exercise 2解答 
+
+###exercise 2遇到的问题
+在进行是否能运行到int $30的检查时，我一直Triple Fault了在
+```
+Program received signal SIGTRAP, Trace/breakpoint trap.
+=> 0xf0104ed2 <memmove+102>:	rep movsl %ds:(%esi),%es:(%edi)
+0xf0104ed2 in memmove (dst=0x200000, src=0xf011e378, n=<unknown type>) at lib/string.c:162
+162				asm volatile("cld; rep movsl\n"
+```
+纠结了这个错误很久的时间，一开始查看代码没有发现任何错误，在单步运行之后，发现是在load_icode出现错误，查明原因是因为在这里需要用到的是进程的页面机制，在之前加入对面的设置cr3的代码lcr3(PADDR(e->env_pgdir))即可。
+exercise 3
+--------------
+###exercise 3解答

@@ -35,6 +35,7 @@ i386_init(void)
 	env_init();
 	trap_init();
 
+
 #if defined(TEST)
 	// Don't touch -- used by grading script!
 	ENV_CREATE(TEST, ENV_TYPE_USER);
