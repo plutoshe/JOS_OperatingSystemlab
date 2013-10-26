@@ -63,7 +63,7 @@ void
 trap_init(void)
 {
 	extern struct Segdesc gdt[];
-	void trap_handler0();
+/*	void trap_handler0();
 	void trap_handler1();
 	void trap_handler2();
 	void trap_handler3();
@@ -80,8 +80,9 @@ trap_init(void)
 	void trap_handler16();
 	void trap_handler17();
 	void trap_handler18();
-	void trap_handler19();
+	void trap_handler19();*/
 	// LAB 3: Your code here.
+	/*
 	SETGATE(idt[0], 0, GD_KT, trap_handler0, 0); 
 	SETGATE(idt[1], 0, GD_KT, trap_handler1, 0); 
 	SETGATE(idt[2], 0, GD_KT, trap_handler2, 0); 
@@ -91,7 +92,6 @@ trap_init(void)
 	SETGATE(idt[6], 0, GD_KT, trap_handler6, 0); 
 	SETGATE(idt[7], 0, GD_KT, trap_handler7, 0); 
 	SETGATE(idt[8], 0, GD_KT, trap_handler8, 0); 
-	SETGATE(idt[9], 0, GD_KT, trap_handler9, 0); 
 	SETGATE(idt[10], 0, GD_KT, trap_handler10, 0);
 	SETGATE(idt[11], 0, GD_KT, trap_handler11, 0); 
 	SETGATE(idt[12], 0, GD_KT, trap_handler12, 0); 
@@ -102,10 +102,12 @@ trap_init(void)
 	SETGATE(idt[17], 0, GD_KT, trap_handler17, 0); 
 	SETGATE(idt[18], 0, GD_KT, trap_handler18, 0); 
 	SETGATE(idt[19], 0, GD_KT, trap_handler19, 0); 
-/*	int i;
+	*/
+	extern uint32_t vectors[];
+	int i;
 	for (i = 0; i < 20; i++) {
-		SEG_GATE(
-	}*/
+		SETGATE(idt[i], 0, GD_KT, vectors[i], 0);
+	}
 
 	// Per-CPU setup 
 	trap_init_percpu();

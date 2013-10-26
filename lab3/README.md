@@ -35,3 +35,41 @@ exercise 3
 exercise 4
 --------------
 ###exercise 4解答
+
+challenge 1
+---
+##challenge 1解答
+这个challenge的本质是让我们写一个data段来共享一个全局变量使得我们可以循环来直接调用我们的数组，我当时最直接的做法是开启一个data段的数据为数据直接赋值，让之后的trap.c的SETGATE的操作可以直接循环做。如：
+```
+.data
+.long trap_handler0
+.long trap_handler1
+.long trap_handler2
+.long trap_handler3
+.long trap_handler4
+.long 0
+.long trap_handler6
+.long trap_handler7
+.long trap_handler8
+.long 0
+.long trap_handler10
+.long trap_handler11
+.long trap_handler12
+.long trap_handler13
+.long trap_handler14
+.long 0
+.long trap_handler16
+.long trap_handler17
+.long trap_handler18
+.long trap_handler19
+```
+这是对trap.c中的代码的优化:
+```
+	extern uint32_t vectors[];
+	int i;
+	for (i = 0; i < 20; i++) {
+		SETGATE(idt[i], 0, GD_KT, vectors[i], 0);
+	}
+```
+之后发现这样其实是把trap.c中的这个操作移动到了.S文件中去做，实际的代码量并没有减少，所以之后考虑到是否能将这一部分优化，之后发现.text和.data几乎做了相同的事情，如果能使用LOOP编译命令是否可以更加的优，之后发现这么做是不行的，毕竟在error code的压栈时，要分别考虑，这样写更为麻烦。<\br>
+所以之后想到了将.text和.data段合在一起可以减少一半的代码量

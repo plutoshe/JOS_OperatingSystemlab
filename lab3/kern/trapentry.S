@@ -41,31 +41,116 @@
 	pushl $(num);							\
 	jmp _alltraps
 
-.text
+#define MYHANDLER(name, num)						\
+	.text;				\
+	.globl name;		/* define global symbol for 'name' */	\
+	.type name, @function;	/* symbol type is function */		\
+	.align 2;		/* align function definition */		\
+	name:			/* function starts here */		\
+	pushl $(num);							\
+	jmp _alltraps; \
+	.data; \
+	.long name 
+
+#define MYHANDLER_NOEC(name, num)					\
+	.text; \
+	.globl name;							\
+	.type name, @function;						\
+	.align 2;							\
+	name:								\
+	pushl $0;							\
+	pushl $(num);							\
+	jmp _alltraps; 						\
+	.data;						\
+	.long name
 
 /*
  * Lab 3: Your code here for generating entry points for the different traps.
  */
-TRAPHANDLER(trap_handler0, 0)
-TRAPHANDLER(trap_handler1, 1)
-TRAPHANDLER(trap_handler2, 2)
-TRAPHANDLER(trap_handler3, 3)
-TRAPHANDLER(trap_handler4, 4)
-TRAPHANDLER(trap_handler6, 6)
-TRAPHANDLER(trap_handler7, 7)
-TRAPHANDLER(trap_handler8, 8)
-TRAPHANDLER(trap_handler9, 9)
+/*
+TRAPHANDLER_NOEC(trap_handler0, 0)
+TRAPHANDLER_NOEC(trap_handler1, 1)
+TRAPHANDLER_NOEC(trap_handler2, 2)
+TRAPHANDLER_NOEC(trap_handler3, 3)
+TRAPHANDLER_NOEC(trap_handler4, 4)
+TRAPHANDLER_NOEC(trap_handler6, 6)
+TRAPHANDLER_NOEC(trap_handler7, 7)
+TRAPHANDLER_NOEC(trap_handler8, 8)
+TRAPHANDLER_NOEC(trap_handler9, 9)
 TRAPHANDLER(trap_handler10, 10)
 TRAPHANDLER(trap_handler11, 11)
 TRAPHANDLER(trap_handler12, 12)
 TRAPHANDLER(trap_handler13, 13)
 TRAPHANDLER(trap_handler14, 14)
-TRAPHANDLER(trap_handler16, 16)
+TRAPHANDLER_NOEC(trap_handler16, 16)
 TRAPHANDLER(trap_handler17, 17)
-TRAPHANDLER(trap_handler18, 18)
-TRAPHANDLER(trap_handler19, 19)
+TRAPHANDLER_NOEC(trap_handler18, 18)
+TRAPHANDLER_NOEC(trap_handler19, 19)
+*/
 
+.text
+TRAPHANDLER_NOEC(trap_handler0, 0)
+TRAPHANDLER_NOEC(trap_handler1, 1)
+TRAPHANDLER_NOEC(trap_handler2, 2)
+TRAPHANDLER_NOEC(trap_handler3, 3)
+TRAPHANDLER_NOEC(trap_handler4, 4)
+TRAPHANDLER_NOEC(trap_handler6, 6)
+TRAPHANDLER_NOEC(trap_handler7, 7)
+TRAPHANDLER_NOEC(trap_handler8, 8)
+TRAPHANDLER_NOEC(trap_handler9, 9)
+TRAPHANDLER(trap_handler10, 10)
+TRAPHANDLER(trap_handler11, 11)
+TRAPHANDLER(trap_handler12, 12)
+TRAPHANDLER(trap_handler13, 13)
+TRAPHANDLER(trap_handler14, 14)
+TRAPHANDLER_NOEC(trap_handler16, 16)
+TRAPHANDLER(trap_handler17, 17)
+TRAPHANDLER_NOEC(trap_handler18, 18)
+TRAPHANDLER_NOEC(trap_handler19, 19)
+.data
+.align 2
+.global vectors
 
+vectors:
+/*
+MYHANDLER_NOEC(trap_handler0, 0)
+MYHANDLER_NOEC(trap_handler1, 1)
+MYHANDLER_NOEC(trap_handler2, 2)
+MYHANDLER_NOEC(trap_handler3, 3)
+MYHANDLER_NOEC(trap_handler4, 4)
+MYHANDLER_NOEC(trap_handler6, 6)
+MYHANDLER_NOEC(trap_handler7, 7)
+MYHANDLER_NOEC(trap_handler8, 8)
+MYHANDLER(trap_handler10, 10)
+MYHANDLER(trap_handler11, 11)
+MYHANDLER(trap_handler12, 12)
+MYHANDLER(trap_handler13, 13)
+MYHANDLER(trap_handler14, 14)
+MYHANDLER_NOEC(trap_handler16, 16)
+MYHANDLER(trap_handler17, 17)
+MYHANDLER_NOEC(trap_handler18, 18)
+MYHANDLER_NOEC(trap_handler19, 19)*/
+.data
+.long trap_handler0
+.long trap_handler1
+.long trap_handler2
+.long trap_handler3
+.long trap_handler4
+.long 0
+.long trap_handler6
+.long trap_handler7
+.long trap_handler8
+.long 0
+.long trap_handler10
+.long trap_handler11
+.long trap_handler12
+.long trap_handler13
+.long trap_handler14
+.long 0
+.long trap_handler16
+.long trap_handler17
+.long trap_handler18
+.long trap_handler19
 /*
  * Lab 3: Your code here for _alltraps
  */
