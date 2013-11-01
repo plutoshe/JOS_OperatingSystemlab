@@ -18,7 +18,95 @@ mem_init():
 exercise 2
 --------------
 ###exercise 2解答 
+env_init:
+```
+int i;
+	env_free_list = NULL;	
+	for (i = NENV - 1; i >= 0; i--) {
+		envs[i].env_id = 0;
+		envs[i].env_link = env_free_list;
+		env_free_list = &envs[i];
+	}
+```
+env_init从大到小把对应的页面加入到env_free_list中。
+</br>
+env_setup_vm:
+```
+	e->env_pgdir = (pde_t*) page2kva(p);
+	p->pp_ref++;
+	memcpy(e->env_pgdir, kern_pgdir, PGSIZE); 
+	memset(e->env_pgdir, 0, PDX(UTOP) * sizeof(pde_t));
+	// UVPT maps the env's own page table read-only.
+	// Permissions: kernel R, user R
+	e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_P | PTE_U;
+```
+这里对应注释我将对应的环境的虚拟地址进行了设置。一开始我使用的是pgdir_walk找对应的页，然后复制到对应的env_pgdir的对应位置，之后发现可以直接使用memcpy，所以直接对应的将要求完成了。
+</br>
+region_alloc：
+```
+	size_t begin = ROUNDDOWN((size_t)va, PGSIZE);
+	size_t end = ROUNDUP(((size_t)va) + len, PGSIZE);
+	for (;begin != end; begin += PGSIZE) {
+		struct PageInfo *temp = page_alloc(PGSIZE);
+		if (!temp) {
+			panic("alloc fail");
+			return;
+		}
+		page_insert(e->env_pgdir, temp, (void*)begin, PTE_W | PTE_U); 
+	}
+	return;
+```
+在region_alloc中，直接将需要的物理地址加到我们的env_pgdir中去。
+</br>
+load_icode
+```
+struct Elf* now = (struct Elf*) binary;
+	struct Proghdr *ph, *eph;
 
+	// is this a valid ELF?
+	if (now->e_magic != ELF_MAGIC)
+		panic("wrong");
+	// load each program segment (ignores ph flags)
+	lcr3(PADDR(e->env_pgdir));
+	ph = (struct Proghdr *) ((uint8_t *) now + now->e_phoff);
+	eph = ph + now->e_phnum;
+	for (; ph < eph; ph++)
+		// p_pa is the load address of this segment (as well
+		// as the physical address)
+		if (ph->p_type == ELF_PROG_LOAD) {
+			region_alloc(e, (void*) ph->p_pa, ph->p_memsz);
+			memset((void*)(ph->p_va), 0, ph->p_memsz);
+			memcpy((void*)ph->p_va, binary + ph->p_offset, ph->p_filesz);
+
+		}
+	e->env_tf.tf_eip = now->e_entry;
+
+	lcr3(PADDR(kern_pgdir));
+	region_alloc(e, (void*) (USTACKTOP - PGSIZE), PGSIZE);
+```
+这里参照的是main.c的程序进行了相应的填写。</br>
+env_create:
+```
+struct Env* e;
+	
+	if (env_alloc(&e, 0) < 0) panic("wrong");
+	load_icode(e, binary, size);
+	e->env_type = type;
+	return;
+```
+</br>
+env_run:
+```
+if (curenv != NULL && curenv->env_status == ENV_RUNNING) {
+		curenv->env_status = ENV_RUNNABLE;
+	}
+	curenv = e;
+	curenv->env_status = ENV_RUNNING ;
+	curenv->env_runs++;
+	lcr3(PADDR(curenv->env_pgdir));
+	env_pop_tf(&curenv->env_tf);
+	panic("env_run not yet implemented");
+```
 ###exercise 2遇到的问题
 在进行是否能运行到int $30的检查时，我一直Triple Fault了在
 ```
@@ -27,7 +115,7 @@ Program received signal SIGTRAP, Trace/breakpoint trap.
 0xf0104ed2 in memmove (dst=0x200000, src=0xf011e378, n=<unknown type>) at lib/string.c:162
 162				asm volatile("cld; rep movsl\n"
 ```
-纠结了这个错误很久的时间，一开始查看代码没有发现任何错误，在单步运行之后，发现是在load_icode出现错误，查明原因是因为在这里需要用到的是进程的页面机制，在之前加入对面的设置cr3的代码lcr3(PADDR(e->env_pgdir))即可。
+纠结了这个错误很久的时间，一开始查看代码没有发现任何错误，在单步运行之后，发现是在load_icode出现错误，查明原因是因为自己在这里理解有错误，我们需要的是对与环境对应的页面进行相应的赋值，所以在这里需要用到的是进程的页面机制，在之前加入对面的设置cr3的代码lcr3(PADDR(e->env_pgdir))即可。
 exercise 3
 --------------
 ###exercise 3解答
