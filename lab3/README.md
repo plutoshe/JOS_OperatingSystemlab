@@ -2,6 +2,27 @@ JOS Lab3 Report
 ====================================
 Result
 ----------------------------
+```
+divzero: OK (1.9s) 
+softint: OK (0.9s) 
+badsegment: OK (0.9s) 
+Part A score: 30/30
+
+faultread: OK (0.9s) 
+faultreadkernel: OK (1.5s) 
+faultwrite: OK (2.4s) 
+faultwritekernel: OK (2.1s) 
+breakpoint: OK (0.9s) 
+testbss: OK (1.6s) 
+hello: OK (2.0s) 
+buggyhello: OK (2.4s) 
+buggyhello2: OK (1.1s) 
+evilhello: OK (1.5s) 
+Part B score: 50/50
+
+Score: 80/80
+```
+在做lab时，有一个问题是我在完成所以程序之后，testbss的测试仍没有通过，但是我调试了很久并没有发现我程序的原因，当我把我的程序重命名，然后再copy一份后，make grade就得到了满分，这个不清楚是为什么，之前我也使用过了make clean，但还是testbss过不了，导致不了对应的缺页中断。
 
 
 Part A: User Environments and Exception Handling
@@ -123,40 +144,28 @@ exercise 3
 exercise 4
 --------------
 ###exercise 4解答
-	Interrupt ID Error Code
-	divide error 0
-	N
-	debug exception 1
-	N
-	non-maskable interrupt 2
-	N
-	breakpoint 3
-N
-overflow 4
-N
-bounds check 5
-N
-illegal opcode 6
-N
-device not available 7
-N
-double fault 8
-N
-invalid task switch segment 10 Y
-segment not present stack exception 12 Y
-general protection fault 13 Y
-page fault 14 Y
-floating point error 16 N
-aligment check 17 Y
-machine check 18 N
-SIMD floating point error 
-1.4.1
-11 Y
-19 N
-	
-
 ```
-challenge 1
+Interrupt ID Error Code
+divide error 0 				N
+debug exception 1			N
+non-maskable interrupt 2		N
+breakpoint 3				N
+overflow 4				N
+bounds check 5				N
+illegal opcode 6			N
+device not available 7			N
+double fault 8				N
+invalid task switch segment 10 		Y
+segment not present stack exception 12 	Y
+general protection fault 13 		Y
+page fault 14 				Y
+floating point error 16 		N
+aligment check 17 			Y
+machine check 18 			N
+SIMD floating point error 19 		N
+	
+```
+Challenge 1
 ---
 ##challenge 1解答
 这个challenge的本质是让我们写一个data段来共享一个全局变量使得我们可以循环来直接调用我们的数组，我当时最直接的做法是开启一个data段的数据为数据直接赋值，让之后的trap.c的SETGATE的操作可以直接循环做。如：
@@ -270,7 +279,10 @@ exercise 5
 ---
 ###exercise 5解答
 在这里直接对tf->trapno进行判断即可
+
 ```
+if (tf->tf_trapno == 14) 
+//		page_fault_handler(tf);
 ```
 
 exercise6
@@ -278,9 +290,17 @@ exercise6
 ###exercise 6解答
 发现需要对应多个trapno所以将if改成了switch
 ```
+	switch (tf->tf_trapno) {
+		case T_PGFLT : 
+			page_fault_handler(tf);
+			break;
+		case T_BRKPT : 
+			monitor(tf);
+			break;
+	}
 ```
 ###exercise 6遇到的问题
-在第一次写完对应代码之后出现了这个错误
+在这个exercise写完对应代码之后出现了这个错误
 ```
 breakpoint: FAIL (2.5s) 
     ...
@@ -308,10 +328,109 @@ breakpoint: FAIL (2.5s)
     MISSING '  trap 0x00000003 Breakpoint'
     QEMU output saved to jos.out.breakpoint
 ```
-说唯一的进程被停止了，这个错误我非常的困惑，之后发觉原因可能是他把env直接给了交互式程序导致了唯一的程序
+说唯一的进程被停止了，这个错误我非常的困惑，当时看程序猜原因可能是他把env直接给了交互式程序导致了唯一的程序，之后发现根本原因是权限的错误，原因是之前我没有把对应的BRKPT对应的中断的权限调整成用户权限，导致之后用户调用该中断时，发现没有权限，系统为了保护所以导致了错误。
 
 exercise7
 ---
 ###exercise 7解答
+查看对应的代码段，通过阅读GCC-Inline-Assembly-HOWTO,了解了asm volatile干了什么，而对应的syscall的代码，通过判断syscallno，来调用相应的函数，而调用该系统调用需要提供对应的数据，在中断的trap结构的寄存器中，在trap_dispatch中按照顺序将对应的寄存器存入，之后将结果最后保存在eax寄存器中。<\br>
+syscall.c:
+```
+	cprintf("SYSCALL NO : %d\n", syscallno);
+	switch (syscallno) {
+		case SYS_cgetc : 
+			sys_cgetc();
+			goto _success_invoke;
+		case SYS_env_destroy : 
+			sys_env_destroy((envid_t) a1);
+			goto _success_invoke;
+		case SYS_getenvid :
+			sys_getenvid();
+			goto _success_invoke;
+		case SYS_cputs :
+			sys_cputs((char*) a1, (size_t) a2);
+			goto _success_invoke;
+		default :
+			return -E_INVAL;
+		
+	}
+
+	panic("syscall not implemented");
+	_success_invoke : 
+		return 0;
+
+```
+trap.c:
+```
+		case T_SYSCALL :
+			r = syscall(tf->tf_regs.reg_eax, tf->tf_regs.reg_edx, tf->tf_regs.reg_ecx, tf->tf_regs.reg_ebx, tf->tf_regs.reg_edi, tf->tf_regs.reg_esi);
+			tf->tf_regs.reg_eax = r;
+			break;
+```
+exercise8
+---
+###exercise 8解答
+这里在libmain中加入以下代码即可
+```
+thisenv = envs + ENVX(sys_getenvid());
+```
+exercise9&10
+---
+###exercise 9&10解答
+这个exercise需要对用户调用的空间进行对应的检查，所以在user_mem_check按照他的提示对对应的空间进行了检查。
+```
+int
+user_mem_check(struct Env *env, const void *va, size_t len, int perm)
+{
+	// LAB 3: Your code here.
+	pde_t*  now;
+	perm |= PTE_P;
+	int l = 1;
+	uint32_t begin = ROUNDDOWN((uint32_t) va, PGSIZE);
+	uint32_t end = ROUNDUP((uint32_t)(va) + len, PGSIZE);
+	for (; begin != end; begin += PGSIZE) {
+		if (begin >= ULIM) { 
+			if (l) begin = (uint32_t) va;
+			user_mem_check_addr = begin; return -E_FAULT;
+		}
+		now = pgdir_walk(env->env_pgdir, (void*)begin, 0);
+		if (now == NULL || (*now & perm) != perm) {
+			if (l) begin = (uint32_t) va;
+			user_mem_check_addr = begin;
+			return -E_FAULT;
+		}
+		l = 0;
+	}
+
+
+	return 0;
+}
+
+```
+在 kern/kdebug.c 加入对 usd, stabs, stabstr 的检查
+```
+
+		if (user_mem_check(curenv , (void *)usd , sizeof(struct UserStabData), PTE_U) < 0) {
+			return -1;
+		}
+
+		stabs = usd->stabs;
+		stab_end = usd->stab_end;
+		stabstr = usd->stabstr;
+		stabstr_end = usd->stabstr_end;
+
+		// Make sure the STABS and string table memory is valid.
+		// LAB 3: Your code here.
+		if (user_mem_check(curenv , (void *)stabs , (uint32_t)stab_end - (uint32_t)stabs , PTE_U) < 0) {
+			return -1;
+		}
+		if (user_mem_check(curenv , (void *) stabstr , (uint32_t)stabstr_end - (uint32_t)stabstr , PTE_U) < 0) {
+			return -1;
+		}
+
+	}
+```
+###exercise 9&10遇到的错误
+这个exercise我但是buggyhello老是过不了，通过查询对应的结果文件和测试程序，发现我犯了一个常识的错误，如果一开始begin页面就会发生错误的话，我的输出是ROUND_DOWN((uint32_t) va, PGSIZE），而需要的页面是在对应的区间之中的，所以应该输出va，所以对应的我将程序特判了一下避免了这个错误。
 
 

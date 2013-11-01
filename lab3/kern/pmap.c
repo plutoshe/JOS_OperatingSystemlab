@@ -575,26 +575,6 @@ user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 	}
 
 
-
-
-
-
-/*	if (len == 0) return 0;
-	perm |= PTE_P;
-	pte_t * pte;
-	uint32_t va_now = (uint32_t)va;
-	uint32_t va_last = ROUNDUP (( uint32_t)va + len , PGSIZE);
-	for (; ROUNDDOWN(va_now , PGSIZE) != va_last; va_now = ROUNDDOWN(va_now +
-	PGSIZE , PGSIZE)) {
-	if (va_now >= ULIM) {
-	user_mem_check_addr = va_now;
-	return -E_FAULT;
-	}
-	pte = pgdir_walk(env ->env_pgdir , (void *)va_now , false);
-	if (pte == NULL || ((* pte & perm ) != perm)) {
-	user_mem_check_addr = va_now;
-	return -E_FAULT;*/
-
 	return 0;
 }
 
