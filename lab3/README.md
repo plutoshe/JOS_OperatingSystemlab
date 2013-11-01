@@ -123,7 +123,39 @@ exercise 3
 exercise 4
 --------------
 ###exercise 4解答
+	Interrupt ID Error Code
+	divide error 0
+	N
+	debug exception 1
+	N
+	non-maskable interrupt 2
+	N
+	breakpoint 3
+N
+overflow 4
+N
+bounds check 5
+N
+illegal opcode 6
+N
+device not available 7
+N
+double fault 8
+N
+invalid task switch segment 10 Y
+segment not present stack exception 12 Y
+general protection fault 13 Y
+page fault 14 Y
+floating point error 16 N
+aligment check 17 Y
+machine check 18 N
+SIMD floating point error 
+1.4.1
+11 Y
+19 N
+	
 
+```
 challenge 1
 ---
 ##challenge 1解答
