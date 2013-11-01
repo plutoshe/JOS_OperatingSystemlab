@@ -23,6 +23,8 @@ sys_cputs(const char *s, size_t len)
 	// LAB 3: Your code here.
 
 	// Print the string supplied by the user.
+	user_mem_assert(curenv , (void *)s, len , PTE_U);
+
 	cprintf("%.*s", len, s);
 }
 
@@ -69,7 +71,27 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	// Call the function corresponding to the 'syscallno' parameter.
 	// Return any appropriate return value.
 	// LAB 3: Your code here.
+	cprintf("SYSCALL NO : %d\n", syscallno);
+	switch (syscallno) {
+		case SYS_cgetc : 
+			sys_cgetc();
+			goto _success_invoke;
+		case SYS_env_destroy : 
+			sys_env_destroy((envid_t) a1);
+			goto _success_invoke;
+		case SYS_getenvid :
+			sys_getenvid();
+			goto _success_invoke;
+		case SYS_cputs :
+			sys_cputs((char*) a1, (size_t) a2);
+			goto _success_invoke;
+		default :
+			return -E_INVAL;
+		
+	}
 
 	panic("syscall not implemented");
+	_success_invoke : 
+		return 0;
 }
 

@@ -1,3 +1,4 @@
+
 /* See COPYRIGHT for copyright information. */
 
 #include <inc/mmu.h>
@@ -64,6 +65,9 @@
 	.data;						\
 	.long name
 
+#define MYHANDLER_NULL() \
+	.data; \
+	.long 0
 /*
  * Lab 3: Your code here for generating entry points for the different traps.
  */
@@ -107,30 +111,35 @@ TRAPHANDLER_NOEC(trap_handler16, 16)
 TRAPHANDLER(trap_handler17, 17)
 TRAPHANDLER_NOEC(trap_handler18, 18)
 TRAPHANDLER_NOEC(trap_handler19, 19)
+TRAPHANDLER_NOEC(trap_handler48, 48);
 .data
 .align 2
 .global vectors
 
 vectors:
 /*
+.text
 MYHANDLER_NOEC(trap_handler0, 0)
 MYHANDLER_NOEC(trap_handler1, 1)
 MYHANDLER_NOEC(trap_handler2, 2)
 MYHANDLER_NOEC(trap_handler3, 3)
 MYHANDLER_NOEC(trap_handler4, 4)
+MYHANDLER_NULL()
 MYHANDLER_NOEC(trap_handler6, 6)
 MYHANDLER_NOEC(trap_handler7, 7)
 MYHANDLER_NOEC(trap_handler8, 8)
+MYHANDLER_NULL()
 MYHANDLER(trap_handler10, 10)
 MYHANDLER(trap_handler11, 11)
 MYHANDLER(trap_handler12, 12)
 MYHANDLER(trap_handler13, 13)
 MYHANDLER(trap_handler14, 14)
+MYHANDLER_NULL()
 MYHANDLER_NOEC(trap_handler16, 16)
 MYHANDLER(trap_handler17, 17)
 MYHANDLER_NOEC(trap_handler18, 18)
-MYHANDLER_NOEC(trap_handler19, 19)*/
-.data
+MYHANDLER_NOEC(trap_handler19, 19)
+*/
 .long trap_handler0
 .long trap_handler1
 .long trap_handler2
@@ -151,6 +160,8 @@ MYHANDLER_NOEC(trap_handler19, 19)*/
 .long trap_handler17
 .long trap_handler18
 .long trap_handler19
+.long trap_handler48
+
 /*
  * Lab 3: Your code here for _alltraps
  */

@@ -122,7 +122,18 @@ env_init(void)
 		envs[i].env_id = 0;
 		envs[i].env_link = env_free_list;
 		env_free_list = &envs[i];
-	}
+	}/*
+    uint32_t i;
+    env_free_list = envs;
+    for (i = 0; i < NENV; i++) {
+        envs[i].env_id = 0;
+        envs[i].env_status = ENV_FREE;
+        if (i + 1 != NENV)
+            envs[i].env_link = envs + (i + 1);
+        else 
+            envs[i].env_link = NULL;
+    }*/
+
 	// Per-CPU part of the initialization
 	env_init_percpu();
 }
@@ -188,7 +199,7 @@ env_setup_vm(struct Env *e)
 	e->env_pgdir = (pde_t*) page2kva(p);
 	p->pp_ref++;
 	memcpy(e->env_pgdir, kern_pgdir, PGSIZE); 
-	memset(e->env_pgdir, 0, PDX(UTOP) * sizeof(pde_t*));
+	memset(e->env_pgdir, 0, PDX(UTOP) * sizeof(pde_t));
 /*	for (i = PDX(UTOP); i < PGSIZE; i += 1) {
 		e->env_pgdir[i] = *pgdir_walk(kern_pgdir, (void*)(i << PGSHIFT), 0) | PTE_U;
 
@@ -283,7 +294,7 @@ region_alloc(struct Env *e, void *va, size_t len)
 	//   (Watch out for corner-cases!)
 	size_t begin = ROUNDDOWN((size_t)va, PGSIZE);
 	size_t end = ROUNDUP(((size_t)va) + len, PGSIZE);
-	for (;begin <= end; begin += PGSIZE) {
+	for (;begin != end; begin += PGSIZE) {
 		struct PageInfo *temp = page_alloc(PGSIZE);
 		if (!temp) {
 			panic("alloc fail");

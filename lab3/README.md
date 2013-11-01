@@ -72,4 +72,126 @@ challenge 1
 	}
 ```
 之后发现这样其实是把trap.c中的这个操作移动到了.S文件中去做，实际的代码量并没有减少，所以之后考虑到是否能将这一部分优化，之后发现.text和.data几乎做了相同的事情，如果能使用LOOP编译命令是否可以更加的优，之后发现这么做是不行的，毕竟在error code的压栈时，要分别考虑，这样写更为麻烦。<\br>
-所以之后想到了将.text和.data段合在一起可以减少一半的代码量
+所以之后想到了将.text和.data段合在一起可以减少一半的代码量，之后发现在实现我对应的宏时发生了这样的错误:
+```
+Error: junk at end of line, first unrecognized character is `t'
+kern/trapentry.S:133: Error: bad or irreducible absolute expression
+```
+之后注意到是自己在实现宏时没有注意到宏是以一行来表示，在.data和.text代码后要加入;号使得语法正确。
+```
+#define MYHANDLER(name, num)						\
+	.text;				\
+	.globl name;		/* define global symbol for 'name' */	\
+	.type name, @function;	/* symbol type is function */		\
+	.align 2;		/* align function definition */		\
+	name:			/* function starts here */		\
+	pushl $(num);							\
+	jmp _alltraps; \
+	.data; \
+	.long name 
+
+#define MYHANDLER_NOEC(name, num)					\
+	.text; \
+	.globl name;							\
+	.type name, @function;						\
+	.align 2;							\
+	name:								\
+	pushl $0;							\
+	pushl $(num);							\
+	jmp _alltraps; 						\
+	.data;						\
+	.long name
+
+#define MYHANDLER_NULL() \
+	.data; \
+	.long 0
+/*
+ * Lab 3: Your code here for generating entry points for the different traps.
+ */
+.data
+.align 2
+.global vectors
+
+vectors:
+.text
+MYHANDLER_NOEC(trap_handler0, 0)
+MYHANDLER_NOEC(trap_handler1, 1)
+MYHANDLER_NOEC(trap_handler2, 2)
+MYHANDLER_NOEC(trap_handler3, 3)
+MYHANDLER_NOEC(trap_handler4, 4)
+MYHANDLER_NULL()
+MYHANDLER_NOEC(trap_handler6, 6)
+MYHANDLER_NOEC(trap_handler7, 7)
+MYHANDLER_NOEC(trap_handler8, 8)
+MYHANDLER_NULL()
+MYHANDLER(trap_handler10, 10)
+MYHANDLER(trap_handler11, 11)
+MYHANDLER(trap_handler12, 12)
+MYHANDLER(trap_handler13, 13)
+MYHANDLER(trap_handler14, 14)
+MYHANDLER_NULL()
+MYHANDLER_NOEC(trap_handler16, 16)
+MYHANDLER(trap_handler17, 17)
+MYHANDLER_NOEC(trap_handler18, 18)
+MYHANDLER_NOEC(trap_handler19, 19)
+```
+
+Question
+---
+```
+Q1
+```
+如果不采用特定的方式的话，他们error code的插入，权限的设置都是一样的，但实际上这是需要对于不同的trap，需要进行不同的设置的。
+```
+Q2
+```
+
+exercise 5 
+---
+###exercise 5解答
+在这里直接对tf->trapno进行判断即可
+```
+```
+
+exercise6
+---
+###exercise 6解答
+发现需要对应多个trapno所以将if改成了switch
+```
+```
+###exercise 6遇到的问题
+在第一次写完对应代码之后出现了这个错误
+```
+breakpoint: FAIL (2.5s) 
+    ...
+         check_page_installed_pgdir() succeeded!
+         [00000000] new env 00001000
+    GOOD Incoming TRAP frame at 0xefffffbc
+    GOOD TRAP frame at 0xf01a2000
+           edi  0x00000000
+           esi  0x00000000
+    ...
+           trap 0x0000000d General Protection
+           err  0x0000001a
+    GOOD   eip  0x00800037
+           cs   0x----001b
+           flag 0x00000046
+           esp  0xeebfdfd0
+    GOOD   ss   0x----0023
+    BAD  [00001000] free env 00001000
+         Destroyed the only environment - nothing more to do!
+    GOOD Welcome to the JOS kernel monitor!
+         Type 'help' for a list of commands.
+         
+         QEMU: Terminated via GDBstub
+    unexpected lines in output
+    MISSING '  trap 0x00000003 Breakpoint'
+    QEMU output saved to jos.out.breakpoint
+```
+说唯一的进程被停止了，这个错误我非常的困惑，之后发觉原因可能是他把env直接给了交互式程序导致了唯一的程序
+
+exercise7
+---
+###exercise 7解答
+
+
