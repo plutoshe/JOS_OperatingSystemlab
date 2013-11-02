@@ -63,24 +63,24 @@ void
 trap_init(void)
 {
 	extern struct Segdesc gdt[];
-/*	void trap_handler0();
-	void trap_handler1();
-	void trap_handler2();
-	void trap_handler3();
-	void trap_handler4();
-	void trap_handler6();
-	void trap_handler7();
-	void trap_handler8();
-	void trap_handler9();
-	void trap_handler10();
-	void trap_handler11();
-	void trap_handler12();
-	void trap_handler13();
-	void trap_handler14();
-	void trap_handler16();
-	void trap_handler17();
-	void trap_handler18();
-	void trap_handler19();*/
+/*	extern void trap_handler0();
+	extern void trap_handler1();
+	extern void trap_handler2();
+	extern void trap_handler3();
+	extern void trap_handler4();
+	extern void trap_handler6();
+	extern void trap_handler7();
+	extern void trap_handler8();
+	extern void trap_handler9();
+	extern void trap_handler10();
+	extern void trap_handler11();
+	extern void trap_handler12();
+	extern void trap_handler13();
+	extern void trap_handler14();
+	extern void trap_handler16();
+	extern void trap_handler17();
+	extern void trap_handler18();
+	extern void trap_handler19();*/
 	// LAB 3: Your code here.
 	/*
 	SETGATE(idt[0], 0, GD_KT, trap_handler0, 0); 

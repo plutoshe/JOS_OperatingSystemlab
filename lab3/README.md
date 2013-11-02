@@ -29,6 +29,11 @@ Part A: User Environments and Exception Handling
 ======================================
 exercise 1
 ----------------------------
+```
+Exercise 1. Modify mem_init() in kern/pmap.c to allocate and map the envs array. This array consists of exactly NENV instances of the Env structure allocated much like how you allocated the pages array. Also like the pages array, the memory backing envs should also be mapped user read-only at UENVS (defined in inc/memlayout.h) so user processes can read from this array.
+
+You should run your code and make sure check_kern_pgdir() succeeds.
+```
 ###exercise 1解答
 如果之前lab2一样，首先由于envs的指针为空，所以我们需要为他们分配内存，在boot_alloc为对应的env分配NENV个struct Env大小的空间，之后使用boot_map_region将逻辑地址和物理地址对应起来。<br />
 mem_init():
@@ -38,6 +43,27 @@ mem_init():
 ```
 exercise 2
 --------------
+```
+Exercise 2. In the file env.c, finish coding the following functions:
+
+env_init()
+Initialize all of the Env structures in the envs array and add them to the env_free_list. Also calls env_init_percpu, which configures the segmentation hardware with separate segments for privilege level 0 (kernel) and privilege level 3 (user).
+env_setup_vm()
+Allocate a page directory for a new environment and initialize the kernel portion of the new environment's address space.
+region_alloc()
+Allocates and maps physical memory for an environment
+load_icode()
+You will need to parse an ELF binary image, much like the boot loader already does, and load its contents into the user address space of a new environment.
+env_create()
+Allocate an environment with env_alloc and call load_icode load an ELF binary into it.
+env_run()
+Start a given environment running in user mode.
+As you write these functions, you might find the new cprintf verb %e useful -- it prints a description corresponding to an error code. For example,
+
+	r = -E_NO_MEM;
+	panic("env_alloc: %e", r);
+will panic with the message "env_alloc: out of memory".
+```
 ###exercise 2解答 
 env_init:
 ```
@@ -50,7 +76,7 @@ int i;
 	}
 ```
 env_init从大到小把对应的页面加入到env_free_list中。
-</br>
+<br />
 env_setup_vm:
 ```
 	e->env_pgdir = (pde_t*) page2kva(p);
@@ -62,13 +88,15 @@ env_setup_vm:
 	e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_P | PTE_U;
 ```
 这里对应注释我将对应的环境的虚拟地址进行了设置。一开始我使用的是pgdir_walk找对应的页，然后复制到对应的env_pgdir的对应位置，之后发现可以直接使用memcpy，所以直接对应的将要求完成了。
-</br>
+
+<br />
 region_alloc：
 ```
 	size_t begin = ROUNDDOWN((size_t)va, PGSIZE);
 	size_t end = ROUNDUP(((size_t)va) + len, PGSIZE);
 	for (;begin != end; begin += PGSIZE) {
 		struct PageInfo *temp = page_alloc(PGSIZE);
+
 		if (!temp) {
 			panic("alloc fail");
 			return;
@@ -78,7 +106,7 @@ region_alloc：
 	return;
 ```
 在region_alloc中，直接将需要的物理地址加到我们的env_pgdir中去。
-</br>
+<br />
 load_icode
 ```
 struct Elf* now = (struct Elf*) binary;
@@ -105,7 +133,8 @@ struct Elf* now = (struct Elf*) binary;
 	lcr3(PADDR(kern_pgdir));
 	region_alloc(e, (void*) (USTACKTOP - PGSIZE), PGSIZE);
 ```
-这里参照的是main.c的程序进行了相应的填写。</br>
+这里参照的是main.c的程序进行了相应的填写。
+<br />
 env_create:
 ```
 struct Env* e;
@@ -115,7 +144,7 @@ struct Env* e;
 	e->env_type = type;
 	return;
 ```
-</br>
+<br />
 env_run:
 ```
 if (curenv != NULL && curenv->env_status == ENV_RUNNING) {
@@ -139,11 +168,58 @@ Program received signal SIGTRAP, Trace/breakpoint trap.
 纠结了这个错误很久的时间，一开始查看代码没有发现任何错误，在单步运行之后，发现是在load_icode出现错误，查明原因是因为自己在这里理解有错误，我们需要的是对与环境对应的页面进行相应的赋值，所以在这里需要用到的是进程的页面机制，在之前加入对面的设置cr3的代码lcr3(PADDR(e->env_pgdir))即可。
 exercise 3
 --------------
+```
+Exercise 3. Read Chapter 9, Exceptions and Interrupts in the 80386 Programmer's Manual (or Chapter 5 of the IA-32 Developer's Manual), if you haven't already.
+```
 ###exercise 3解答
-仔细阅读了相关文档，学到了很多知识~~~
+
+仔细阅读了相关文档，学到了很多知识，关于具体的中断的实现机制有了一个清晰的了解。
 exercise 4
 --------------
+```
+Exercise 4. Edit trapentry.S and trap.c and implement the features described above. The macros TRAPHANDLER and TRAPHANDLER_NOEC in trapentry.S should help you, as well as the T_* defines in inc/trap.h. You will need to add an entry point in trapentry.S (using those macros) for each trap defined in inc/trap.h, and you'll have to provide _alltraps which the TRAPHANDLER macros refer to. You will also need to modify trap_init() to initialize the idt to point to each of these entry points defined in trapentry.S; the SETGATE macro will be helpful here.
+
+Your _alltraps should:
+
+push values to make the stack look like a struct Trapframe
+load GD_KD into %ds and %es
+pushl %esp to pass a pointer to the Trapframe as an argument to trap()
+call trap (can trap ever return?)
+Consider using the pushal instruction; it fits nicely with the layout of the struct Trapframe.
+
+Test your trap handling code using some of the test programs in the user directory that cause exceptions before making any system calls, such as user/divzero. You should be able to get make grade to succeed on the divzero, softint, and badsegment tests at this point.
+```
 ###exercise 4解答
+查询了相关资料，找到关于error code不同中断的处理方式。
+```
+向量号	助记符	描述	类型	出错码	源
+0	#DE	除法错	Fault	无	DIV和IDIV指令
+1	#DB	调试异常	Fault/Trap	无	任何代码和数据的访问
+2	—	非屏蔽中断	Interrupt	无	非屏蔽外部中断
+3	#BP	调试断点	Trap	无	指令INT 3
+4	#OF	溢出	Trap	无	指令INTO
+5	#BR	越界	Fault	无	指令BOUND
+6	#UD	无效（未定义）操作码	Fault	无	指令UD2或无效指令
+7	#NM	设备不可用（无数学协处理器）	Fault	无	浮点或WAIT/FWAIT指令
+8	#DF	双重错误	Abort	有（0）	所有能产生异常或NMI或INTR
+的指令
+9	 	协处理器段越界（保留）	Fault	无	浮点指令（386后不再处理此
+异常）
+10	#TS	无效TSS	Fault	有	任务切换或访问TSS时
+11	#NP	段不存在	Fault	有	加载段寄存器或访问系统段时
+12	#SS	堆栈段错误	Fault	有	堆栈操作或加载SS时
+13	#GP	常规保护错误	Fault	有	内存或其他保护检验
+14	#PF	页错误	Fault	有	内存访问
+15	—	Intel保留，未使用	 	 	 
+16	#MF	x87FPU浮点错（数学错）	Fault	无	x87FPU浮点指令或WAIT/FWAIT指令
+17	#AC	对齐检验	Fault	有（0）	内存中的数据访问（486开始支持）
+18	#MC	Machine Check	Abort	无	错误码（若有的话）和源依赖于
+具体模式（奔腾CPU开始支持）
+19	#XF	SIMD浮点异常	Fault	无	SSE和SSE2浮点指令（奔腾三
+开始支持）
+20~31	—	Inter保留，未使用	 	 	 
+32~255	—	用户定义中断	Interrupt	 	外部中断或int n指令
+```
 ```
 Interrupt ID Error Code
 divide error 0 				N
@@ -165,6 +241,70 @@ machine check 18 			N
 SIMD floating point error 19 		N
 	
 ```
+所以在trapentry.S，需要通过使用他提供的2种不同的宏对于这多种中断进行相应的初始化。
+```
+TRAPHANDLER_NOEC(trap_handler0, 0)
+TRAPHANDLER_NOEC(trap_handler1, 1)
+TRAPHANDLER_NOEC(trap_handler2, 2)
+TRAPHANDLER_NOEC(trap_handler3, 3)
+TRAPHANDLER_NOEC(trap_handler4, 4)
+TRAPHANDLER_NOEC(trap_handler6, 6)
+TRAPHANDLER_NOEC(trap_handler7, 7)
+TRAPHANDLER_NOEC(trap_handler8, 8)
+TRAPHANDLER_NOEC(trap_handler9, 9)
+TRAPHANDLER(trap_handler10, 10)
+TRAPHANDLER(trap_handler11, 11)
+TRAPHANDLER(trap_handler12, 12)
+TRAPHANDLER(trap_handler13, 13)
+TRAPHANDLER(trap_handler14, 14)
+TRAPHANDLER_NOEC(trap_handler16, 16)
+TRAPHANDLER(trap_handler17, 17)
+TRAPHANDLER_NOEC(trap_handler18, 18)
+TRAPHANDLER_NOEC(trap_handler19, 19)
+```
+并且在trap.c中对于IDT向量表进行相应的初始化
+```
+	extern void trap_handler0();
+	extern void trap_handler1();
+	extern void trap_handler2();
+	extern void trap_handler3();
+	extern void trap_handler4();
+	extern void trap_handler6();
+	extern void trap_handler7();
+	extern void trap_handler8();
+	extern void trap_handler9();
+	extern void trap_handler10();
+	extern void trap_handler11();
+	extern void trap_handler12();
+	extern void trap_handler13();
+	extern void trap_handler14();
+	extern void trap_handler16();
+	extern void trap_handler17();
+	extern void trap_handler18();
+	extern void trap_handler19();
+	// LAB 3: Your code here.
+
+	SETGATE(idt[0], 0, GD_KT, trap_handler0, 0); 
+	SETGATE(idt[1], 0, GD_KT, trap_handler1, 0); 
+	SETGATE(idt[2], 0, GD_KT, trap_handler2, 0); 
+	SETGATE(idt[3], 0, GD_KT, trap_handler3, 0); 
+	SETGATE(idt[4], 0, GD_KT, trap_handler4, 0); 
+
+	SETGATE(idt[6], 0, GD_KT, trap_handler6, 0); 
+	SETGATE(idt[7], 0, GD_KT, trap_handler7, 0); 
+	SETGATE(idt[8], 0, GD_KT, trap_handler8, 0); 
+	SETGATE(idt[10], 0, GD_KT, trap_handler10, 0);
+	SETGATE(idt[11], 0, GD_KT, trap_handler11, 0); 
+	SETGATE(idt[12], 0, GD_KT, trap_handler12, 0); 
+	SETGATE(idt[13], 0, GD_KT, trap_handler13, 0); 
+	SETGATE(idt[14], 0, GD_KT, trap_handler14, 0); 
+
+	SETGATE(idt[16], 0, GD_KT, trap_handler16, 0); 
+	SETGATE(idt[17], 0, GD_KT, trap_handler17, 0); 
+	SETGATE(idt[18], 0, GD_KT, trap_handler18, 0); 
+	SETGATE(idt[19], 0, GD_KT, trap_handler19, 0); 
+```
+
 Challenge 1
 ---
 ##challenge 1解答
@@ -200,7 +340,7 @@ Challenge 1
 		SETGATE(idt[i], 0, GD_KT, vectors[i], 0);
 	}
 ```
-之后发现这样其实是把trap.c中的这个操作移动到了.S文件中去做，实际的代码量并没有减少，所以之后考虑到是否能将这一部分优化，之后发现.text和.data几乎做了相同的事情，如果能使用LOOP编译命令是否可以更加的优，之后发现这么做是不行的，毕竟在error code的压栈时，要分别考虑，这样写更为麻烦。<\br>
+之后发现这样其实是把trap.c中的这个操作移动到了.S文件中去做，实际的代码量并没有减少，所以之后考虑到是否能将这一部分优化，之后发现.text和.data几乎做了相同的事情，如果能使用LOOP编译命令是否可以更加的优，之后发现这么做是不行的，毕竟在error code的压栈时，要分别考虑，这样写更为麻烦。<br />
 所以之后想到了将.text和.data段合在一起可以减少一半的代码量，之后发现在实现我对应的宏时发生了这样的错误:
 ```
 Error: junk at end of line, first unrecognized character is `t'
@@ -267,16 +407,30 @@ MYHANDLER_NOEC(trap_handler19, 19)
 
 Question
 ---
+Q1:
 ```
-Q1
+Answer the following questions in your answers-lab3.txt:
+
+What is the purpose of having an individual handler function for each exception/interrupt? (i.e., if all exceptions/interrupts were delivered to the same handler, what feature that exists in the current implementation could not be provided?)
+
 ```
 如果不采用特定的方式的话，他们error code的插入，权限的设置都是一样的，但实际上这是需要对于不同的trap，需要进行不同的设置的。
+<br />
+Q2:
 ```
-Q2
+Did you have to do anything to make the user/softint program behave correctly? The grade script expects it to produce a general protection fault (trap 13), but softint's code says int $14. Why should this produce interrupt vector 13? What happens if the kernel actually allows softint's int $14 instruction to invoke the kernel's page fault handler (which is interrupt vector 14)?
 ```
+因为用户权限的问题，我们在IDT向量表中设置了page fault的权限为内核，所以当用户产生这种中断时,会触发 general protection fault。
+如果允许用户触发page fault的话，如果有病毒不断产生该中断的话，会导致系统资源被大量占用，从而导致系统崩溃。
+
+Part B: Page Faults, Breakpoints Exceptions, and System Calls
+====
 
 exercise 5 
 ---
+```
+Exercise 5. Modify trap_dispatch() to dispatch page fault exceptions to page_fault_handler(). You should now be able to get make grade to succeed on the faultread, faultreadkernel, faultwrite, and faultwritekernel tests. If any of them don't work, figure out why and fix them. Remember that you can boot JOS into a particular user program using make run-x or make run-x-nox.
+```
 ###exercise 5解答
 在这里直接对tf->trapno进行判断即可
 
@@ -287,6 +441,9 @@ if (tf->tf_trapno == 14)
 
 exercise6
 ---
+```
+Exercise 6. Modify trap_dispatch() to make breakpoint exceptions invoke the kernel monitor. You should now be able to get make grade to succeed on the breakpoint test.
+```
 ###exercise 6解答
 发现需要对应多个trapno所以将if改成了switch
 ```
@@ -329,11 +486,19 @@ breakpoint: FAIL (2.5s)
     QEMU output saved to jos.out.breakpoint
 ```
 说唯一的进程被停止了，这个错误我非常的困惑，当时看程序猜原因可能是他把env直接给了交互式程序导致了唯一的程序，之后发现根本原因是权限的错误，原因是之前我没有把对应的BRKPT对应的中断的权限调整成用户权限，导致之后用户调用该中断时，发现没有权限，系统为了保护所以导致了错误。
+Question
+---
 
 exercise7
 ---
+
+```
+Exercise 7. Add a handler in the kernel for interrupt vector T_SYSCALL. You will have to edit kern/trapentry.S and kern/trap.c's trap_init(). You also need to change trap_dispatch() to handle the system call interrupt by calling syscall() (defined in kern/syscall.c) with the appropriate arguments, and then arranging for the return value to be passed back to the user process in %eax. Finally, you need to implement syscall() in kern/syscall.c. Make sure syscall() returns -E_INVAL if the system call number is invalid. You should read and understand lib/syscall.c (especially the inline assembly routine) in order to confirm your understanding of the system call interface. You may also find it helpful to read inc/syscall.h.
+
+Run the user/hello program under your kernel (make run-hello). It should print "hello, world" on the console and then cause a page fault in user mode. If this does not happen, it probably means your system call handler isn't quite right. You should also now be able to get make grade to succeed on the testbss test.
+```
 ###exercise 7解答
-查看对应的代码段，通过阅读GCC-Inline-Assembly-HOWTO,了解了asm volatile干了什么，而对应的syscall的代码，通过判断syscallno，来调用相应的函数，而调用该系统调用需要提供对应的数据，在中断的trap结构的寄存器中，在trap_dispatch中按照顺序将对应的寄存器存入，之后将结果最后保存在eax寄存器中。<\br>
+查看对应的代码段，通过阅读GCC-Inline-Assembly-HOWTO,了解了asm volatile干了什么，而对应的syscall的代码，通过判断syscallno，来调用相应的函数，而调用该系统调用需要提供对应的数据，在中断的trap结构的寄存器中，在trap_dispatch中按照顺序将对应的寄存器存入，之后将结果最后保存在eax寄存器中。<br/>
 syscall.c:
 ```
 	cprintf("SYSCALL NO : %d\n", syscallno);
@@ -369,6 +534,9 @@ trap.c:
 ```
 exercise8
 ---
+```
+Exercise 8. Add the required code to the user library, then boot your kernel. You should see user/hello print "hello, world" and then print "i am environment 00001000". user/hello then attempts to "exit" by calling sys_env_destroy() (see lib/libmain.c and lib/exit.c). Since the kernel currently only supports one user environment, it should report that it has destroyed the only environment and then drop into the kernel monitor. You should be able to get make grade to succeed on the hello test.
+```
 ###exercise 8解答
 这里在libmain中加入以下代码即可
 ```
@@ -376,6 +544,31 @@ thisenv = envs + ENVX(sys_getenvid());
 ```
 exercise9&10
 ---
+```
+Exercise 9. Change kern/trap.c to panic if a page fault happens in kernel mode.
+
+Hint: to determine whether a fault happened in user mode or in kernel mode, check the low bits of the tf_cs.
+
+Read user_mem_assert in kern/pmap.c and implement user_mem_check in that same file.
+
+Change kern/syscall.c to sanity check arguments to system calls.
+
+Boot your kernel, running user/buggyhello. The environment should be destroyed, and the kernel should not panic. You should see:
+
+	[00001000] user_mem_check assertion failure for va 00000001
+	[00001000] free env 00001000
+	Destroyed the only environment - nothing more to do!
+	
+Finally, change debuginfo_eip in kern/kdebug.c to call user_mem_check on usd, stabs, and stabstr. If you now run user/breakpoint, you should be able to run backtrace from the kernel monitor and see the backtrace traverse into lib/libmain.c before the kernel panics with a page fault. What causes this page fault? You don't need to fix it, but you should understand why it happens.
+```
+```
+Exercise 10. Boot your kernel, running user/evilhello. The environment should be destroyed, and the kernel should not panic. You should see:
+
+	[00000000] new env 00001000
+	[00001000] user_mem_check assertion failure for va f0100020
+	[00001000] free env 00001000
+	
+```
 ###exercise 9&10解答
 这个exercise需要对用户调用的空间进行对应的检查，所以在user_mem_check按照他的提示对对应的空间进行了检查。
 ```
