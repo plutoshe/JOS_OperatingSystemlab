@@ -12,6 +12,7 @@
 #include <kern/kdebug.h>
 #include <kern/trap.h>
 #include <kern/pmap.h>
+#include <kern/env.h>
 
 #define CMDBUF_SIZE	80	// enough for one VGA text line
 #define COLOR_WHT 7;
@@ -40,11 +41,43 @@ static struct Command commands[] = {
 	{ "showmappings", "DisPlay the physical page mappings and corresponding permission bits that apply to the pages\n               showmappings a b, display the information from a to b", mon_showmapping },
 	{ "setp", "setp Permission, Clear the address's permission by default\n       setp va PTE_U PTE_W PTE_W", mon_changePermission },
 	{ "dump", "dump the virtual or physical address of the memory", mon_dump },
+	{ "continue", "continue the process in breakpoint", mon_continue}, 
+	{ "si", "follow the step of the process in breakpoint", mon_si}, 
 	{ "PT", "show the page table of given address", mon_showPT }
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
 /***** Implementations of basic kernel monitor commands *****/
+int mon_continue(int argc, char **argv, struct Trapframe *tf)
+{
+	if (argc > 1) {
+		cprintf("invalid number of parameters\n");
+		return 0;
+	}
+	if (tf == NULL) {
+		cprintf("continue error.\n");
+		return 0;
+	}
+	tf->tf_eflags &= ~FL_TF;
+	env_run(curenv);
+	panic("continue error, env ret");
+	return 0;
+}
+
+int mon_si(int argc, char **argv, struct Trapframe *tf) {
+	if (argc > 1) {
+		cprintf("invalid number of parameters\n");
+		return 0;
+	}
+	if (tf == NULL) {
+		cprintf("si error.\n");
+		return 0;
+	}
+	tf->tf_eflags |= FL_TF;
+	env_run(curenv);
+	panic("si error, env ret");
+	return 0;
+}
 
 int
 mon_help(int argc, char **argv, struct Trapframe *tf)

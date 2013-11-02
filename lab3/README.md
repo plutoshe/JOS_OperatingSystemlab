@@ -23,6 +23,8 @@ Part B score: 50/50
 Score: 80/80
 ```
 在做lab时，有一个问题是我在完成所以程序之后，testbss的测试仍没有通过，但是我调试了很久并没有发现我程序的原因，当我把我的程序重命名，然后再copy一份后，make grade就得到了满分，这个不清楚是为什么，之前我也使用过了make clean，但还是testbss过不了，导致不了对应的缺页中断。
+做这个lab最大的感受就是需要把握到全局，关于整个系统对于进程调用，进程陷入到内核中各种保护和切换有了一个清晰的全局认识。
+结合了操统课上所学到的关于进程的知识，对于操作系统对于进程的管理有了一个大致的认识，也充分了解了操作系统的中断机制。
 
 
 Part A: User Environments and Exception Handling
@@ -65,9 +67,10 @@ As you write these functions, you might find the new cprintf verb %e useful -- i
 will panic with the message "env_alloc: out of memory".
 ```
 ###exercise 2解答 
-env_init:
+
 ```
-int i;
+env_init:
+	int i;
 	env_free_list = NULL;	
 	for (i = NENV - 1; i >= 0; i--) {
 		envs[i].env_id = 0;
@@ -77,8 +80,9 @@ int i;
 ```
 env_init从大到小把对应的页面加入到env_free_list中。
 <br />
-env_setup_vm:
+
 ```
+env_setup_vm:
 	e->env_pgdir = (pde_t*) page2kva(p);
 	p->pp_ref++;
 	memcpy(e->env_pgdir, kern_pgdir, PGSIZE); 
@@ -89,9 +93,9 @@ env_setup_vm:
 ```
 这里对应注释我将对应的环境的虚拟地址进行了设置。一开始我使用的是pgdir_walk找对应的页，然后复制到对应的env_pgdir的对应位置，之后发现可以直接使用memcpy，所以直接对应的将要求完成了。
 
-<br />
-region_alloc：
+
 ```
+region_alloc：
 	size_t begin = ROUNDDOWN((size_t)va, PGSIZE);
 	size_t end = ROUNDUP(((size_t)va) + len, PGSIZE);
 	for (;begin != end; begin += PGSIZE) {
@@ -107,8 +111,9 @@ region_alloc：
 ```
 在region_alloc中，直接将需要的物理地址加到我们的env_pgdir中去。
 <br />
-load_icode
+
 ```
+load_icode
 struct Elf* now = (struct Elf*) binary;
 	struct Proghdr *ph, *eph;
 
@@ -135,8 +140,9 @@ struct Elf* now = (struct Elf*) binary;
 ```
 这里参照的是main.c的程序进行了相应的填写。
 <br />
-env_create:
+
 ```
+env_create:
 struct Env* e;
 	
 	if (env_alloc(&e, 0) < 0) panic("wrong");
@@ -145,8 +151,9 @@ struct Env* e;
 	return;
 ```
 <br />
-env_run:
+
 ```
+env_run:
 if (curenv != NULL && curenv->env_status == ENV_RUNNING) {
 		curenv->env_status = ENV_RUNNABLE;
 	}
@@ -220,27 +227,7 @@ Test your trap handling code using some of the test programs in the user directo
 20~31	—	Inter保留，未使用	 	 	 
 32~255	—	用户定义中断	Interrupt	 	外部中断或int n指令
 ```
-```
-Interrupt ID Error Code
-divide error 0 				N
-debug exception 1			N
-non-maskable interrupt 2		N
-breakpoint 3				N
-overflow 4				N
-bounds check 5				N
-illegal opcode 6			N
-device not available 7			N
-double fault 8				N
-invalid task switch segment 10 		Y
-segment not present stack exception 12 	Y
-general protection fault 13 		Y
-page fault 14 				Y
-floating point error 16 		N
-aligment check 17 			Y
-machine check 18 			N
-SIMD floating point error 19 		N
-	
-```
+
 所以在trapentry.S，需要通过使用他提供的2种不同的宏对于这多种中断进行相应的初始化。
 ```
 TRAPHANDLER_NOEC(trap_handler0, 0)
@@ -306,6 +293,9 @@ TRAPHANDLER_NOEC(trap_handler19, 19)
 ```
 
 Challenge 1
+```
+Challenge! You probably have a lot of very similar code right now, between the lists of TRAPHANDLER in trapentry.S and their installations in trap.c. Clean this up. Change the macros in trapentry.S to automatically generate a table for trap.c to use. Note that you can switch between laying down code and data in the assembler by using the directives .text and .data.
+```
 ---
 ##challenge 1解答
 这个challenge的本质是让我们写一个data段来共享一个全局变量使得我们可以循环来直接调用我们的数组，我当时最直接的做法是开启一个data段的数据为数据直接赋值，让之后的trap.c的SETGATE的操作可以直接循环做。如：
@@ -486,8 +476,218 @@ breakpoint: FAIL (2.5s)
     QEMU output saved to jos.out.breakpoint
 ```
 说唯一的进程被停止了，这个错误我非常的困惑，当时看程序猜原因可能是他把env直接给了交互式程序导致了唯一的程序，之后发现根本原因是权限的错误，原因是之前我没有把对应的BRKPT对应的中断的权限调整成用户权限，导致之后用户调用该中断时，发现没有权限，系统为了保护所以导致了错误。
+Challenge 2
+----
+```
+Challenge! Modify the JOS kernel monitor so that you can 'continue' execution from the current location (e.g., after the int3, if the kernel monitor was invoked via the breakpoint exception), and so that you can single-step one instruction at a time. You will need to understand certain bits of the EFLAGS register in order to implement single-stepping.
+
+Optional: If you're feeling really adventurous, find some x86 disassembler source code - e.g., by ripping it out of QEMU, or out of GNU binutils, or just write it yourself - and extend the JOS kernel monitor to be able to disassemble and display instructions as you are stepping through them. Combined with the symbol table loading from lab 2, this is the stuff of which real kernel debuggers are made.
+```
+###challenge 2解答
+做这个challenge就需要了解EFLAGS寄存器，通过查询相关资料，发现TF位才是我们在这个Challenge需要的。
+TF(bit 8) [Trap flag]   将该位设置为1以允许单步调试模式，清零则禁用该模式。
+那么continue的程序很容易实现，只需要在monitor中加入env.h，接着继续载入我们的当前进程的环境继续运行即可
+```
+int mon_continue(int argc, char **argv, struct Trapframe *tf)
+{
+	if (argc > 1) {
+		cprintf("invalid number of parameters\n");
+		return 0;
+	}
+	if (tf == NULL) {
+		cprintf("continue error.\n");
+		return 0;
+	}
+	tf->tf_eflags &= ~FL_TF;
+	env_run(curenv);
+	panic("continue error, env ret");
+	return 0;
+}
+```
+修改了对应的breakpoint程序，检测我们的程序的正确性，
+```
+void
+umain(int argc, char **argv)
+{
+	asm volatile("int $3");
+	int i = 1;
+	cprintf("break point test point %d\n", i);
+	cprintf("A\n");
+	asm volatile("int $3");
+	i++;
+	cprintf("break point test point %d\n", i);
+	cprintf("A\n");
+	cprintf("A\n");
+}
+```
+得到的结果为下图，符合预期
+```
+K> continue
+Incoming TRAP frame at 0xefffffbc
+TRAP NO : 48
+SYSCALL NO : 0
+break point test point 1
+Incoming TRAP frame at 0xefffffbc
+TRAP NO : 48
+SYSCALL NO : 0
+A
+Incoming TRAP frame at 0xefffffbc
+TRAP NO : 3
+Welcome to the JOS kernel monitor!
+Type 'help' for a list of commands.
+TRAP frame at 0xf01a3000
+  edi  0x00000000
+  esi  0x00000000
+  ebp  0xeebfdfd0
+  oesp 0xefffffdc
+  ebx  0x00000000
+  edx  0xeebfde88
+  ecx  0x00000002
+  eax  0x00000002
+  es   0x----0023
+  ds   0x----0023
+  trap 0x00000003 Breakpoint
+  err  0x00000000
+  eip  0x0080005c
+  cs   0x----001b
+  flag 0x00000092
+  esp  0xeebfdfb8
+  ss   0x----0023
+K> continue
+Incoming TRAP frame at 0xefffffbc
+TRAP NO : 48
+SYSCALL NO : 0
+break point test point 2
+Incoming TRAP frame at 0xefffffbc
+TRAP NO : 48
+SYSCALL NO : 0
+A
+Incoming TRAP frame at 0xefffffbc
+TRAP NO : 48
+SYSCALL NO : 0
+A
+Incoming TRAP frame at 0xefffffbc
+TRAP NO : 48
+SYSCALL NO : 3
+[00001000] exiting gracefully
+[00001000] free env 00001000
+Destroyed the only environment - nothing more to do!
+Welcome to the JOS kernel monitor!
+Type 'help' for a list of commands.
+```
+之后在si的命令与continue的命令的程序非常类似，需要更改的只是在si命令上需要将TF赋值位为1。
+```
+int mon_si(int argc, char **argv, struct Trapframe *tf) {
+	if (argc > 1) {
+		cprintf("invalid number of parameters\n");
+		return 0;
+	}
+	if (tf == NULL) {
+		cprintf("si error.\n");
+		return 0;
+	}
+	tf->tf_eflags |= FL_TF;
+	env_run(curenv);
+	panic("si error, env ret");
+	return 0;
+}
+
+```
+但完成对应的代码后，之后程序并没有按照我所预期的那么运行，发生了以下情况
+```
+K> si
+Incoming TRAP frame at 0xefffffbc
+TRAP NO : 1
+TRAP frame at 0xf01a2000
+  edi  0x00000000
+  esi  0x00000000
+  ebp  0xeebfdfd0
+  oesp 0xefffffdc
+  ebx  0x00000000
+  edx  0x00000000
+  ecx  0x00000000
+  eax  0xeec00000
+  es   0x----0023
+  ds   0x----0023
+  trap 0x00000001 Debug
+  err  0x00000000
+  eip  0x00800042
+  cs   0x----001b
+  flag 0x00000196
+  esp  0xeebfdfb8
+  ss   0x----0023
+[00001000] free env 00001000
+Destroyed the only environment - nothing more to do!
+
+```
+发现程序调用了trap为1的debug中断，导致了唯一的进程的崩溃，之后了解原因为需要将DEBUG的中断加入到tf_dispatch中，即
+```
+		case T_DEBUG : 
+			monitor(tf);
+			break;
+```
+结果通过观察trap的eip的变化证明了程序的正确性
+```
+K> si
+Incoming TRAP frame at 0xefffffbc
+TRAP NO : 1
+Welcome to the JOS kernel monitor!
+Type 'help' for a list of commands.
+TRAP frame at 0xf01a3000
+  edi  0x00000000
+  esi  0x00000000
+  ebp  0xeebfdfb0
+  oesp 0xefffffdc
+  ebx  0x00000000
+  edx  0xeebfde88
+  ecx  0x00000002
+  eax  0x00800f98
+  es   0x----0023
+  ds   0x----0023
+  trap 0x00000001 Debug
+  err  0x00000000
+  eip  0x00800136
+  cs   0x----001b
+  flag 0x00000192
+  esp  0xeebfdf94
+  ss   0x----0023
+K> si
+Incoming TRAP frame at 0xefffffbc
+TRAP NO : 1
+Welcome to the JOS kernel monitor!
+Type 'help' for a list of commands.
+TRAP frame at 0xf01a3000
+  edi  0x00000000
+  esi  0x00000000
+  ebp  0xeebfdfb0
+  oesp 0xefffffdc
+  ebx  0x00000000
+  edx  0xeebfde88
+  ecx  0x00000002
+  eax  0x00800f98
+  es   0x----0023
+  ds   0x----0023
+  trap 0x00000001 Debug
+  err  0x00000000
+  eip  0x00800137
+  cs   0x----001b
+  flag 0x00000192
+  esp  0xeebfdf90
+  ss   0x----0023
+
+```
+这样challenge 2就基本完成了，关于他所需要的反编译的每行代码，个人认为应该结合反编译的obj文件，记录obj文件的一个指针，跟当前运行的位置进行比对，之后输出对应的代码即可，以后有时间可以继续做做。
+
 Question
 ---
+```
+The break point test case will either generate a break point exception or a general protection fault depending on how you initialized the break point entry in the IDT (i.e., your call to SETGATE from trap_init). Why? How do you need to set it up in order to get the breakpoint exception to work as specified above and what incorrect setup would cause it to trigger a general protection fault?
+```
+因为break point应该为用户权限的中断，如果设置权限为内核，会导致对应的general protection fault
+```
+What do you think is the point of these mechanisms, particularly in light of what the user/softint test program does?
+```
+这种机制可以限制用户使用中断而造成的问题，保护了整个系统，我们可以通过设置 IDT 的dpl位来控制用户的中断的所能进行的行为。
 
 exercise7
 ---
@@ -499,8 +699,9 @@ Run the user/hello program under your kernel (make run-hello). It should print "
 ```
 ###exercise 7解答
 查看对应的代码段，通过阅读GCC-Inline-Assembly-HOWTO,了解了asm volatile干了什么，而对应的syscall的代码，通过判断syscallno，来调用相应的函数，而调用该系统调用需要提供对应的数据，在中断的trap结构的寄存器中，在trap_dispatch中按照顺序将对应的寄存器存入，之后将结果最后保存在eax寄存器中。<br/>
-syscall.c:
+
 ```
+syscall.c:
 	cprintf("SYSCALL NO : %d\n", syscallno);
 	switch (syscallno) {
 		case SYS_cgetc : 
@@ -525,13 +726,16 @@ syscall.c:
 		return 0;
 
 ```
-trap.c:
+
 ```
+trap.c:
 		case T_SYSCALL :
 			r = syscall(tf->tf_regs.reg_eax, tf->tf_regs.reg_edx, tf->tf_regs.reg_ecx, tf->tf_regs.reg_ebx, tf->tf_regs.reg_edi, tf->tf_regs.reg_esi);
 			tf->tf_regs.reg_eax = r;
 			break;
 ```
+这里也需要注意的是系统调用的权限为也为3。
+
 exercise8
 ---
 ```
