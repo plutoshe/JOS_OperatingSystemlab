@@ -1,0 +1,149 @@
+/* See COPYRIGHT for copyright information. */
+
+#include <inc/mmu.h>
+#include <inc/memlayout.h>
+#include <inc/trap.h>
+
+
+
+###################################################################
+# exceptions/interrupts
+###################################################################
+
+/* TRAPHANDLER defines a globally-visible function for handling a trap.
+ * It pushes a trap number onto the stack, then jumps to _alltraps.
+ * Use TRAPHANDLER for traps where the CPU automatically pushes an error code.
+ *
+ * You shouldn't call a TRAPHANDLER function from C, but you may
+ * need to _declare_ one in C (for instance, to get a function pointer
+ * during IDT setup).  You can declare the function with
+ *   void NAME();
+ * where NAME is the argument passed to TRAPHANDLER.
+ */
+
+#define TRAPHANDLER(name, num)                                                \
+        .globl name;                /* define global symbol for 'name' */        \
+        .type name, @function;        /* symbol type is function */                \
+        .align 2;                /* align function definition */                \
+        name:                        /* function starts here */                \
+        pushl $(num);                                                        \
+        jmp _alltraps
+
+/* Use TRAPHANDLER_NOEC for traps where the CPU doesn't push an error code.
+ * It pushes a 0 in place of the error code, so the trap frame has the same
+ * format in either case.
+ */
+
+#define TRAPHANDLER_NOEC(name, num)                        \
+        .globl name;                                                        \
+        .type name, @function;                                                \
+        .align 2;                                                        \
+        name:                                                                \
+        pushl $0;                                                        \
+        pushl $(num);                                                \
+        jmp _alltraps
+
+
+#define MYTH(name, num)                        \
+.text;                \
+        .globl name;                                \
+        .type name, @function;                \
+        .align 2;                        \
+name:                                \
+        pushl $(num);                \
+        jmp _alltraps;                \
+.data;                                \
+        .long name
+
+
+#define MYTH_NOEC(name, num)        \
+.text;                \
+        .globl name;                                \
+        .type name, @function;                \
+        .align 2;                        \
+name:                                \
+        pushl $0;                        \
+        pushl $(num);                \
+        jmp _alltraps;                \
+.data;                                 \
+        .long name      
+
+#define MYTH_NULL()                \
+.data;                                \
+        .long 0
+        
+
+.data
+.align 2
+.globl vectors
+vectors:
+.text
+        MYTH_NOEC(vec0, T_DIVIDE)
+         MYTH_NOEC(vec1, T_DEBUG)
+         MYTH_NOEC(vec2, T_NMI)
+         MYTH_NOEC(vec3, T_BRKPT)
+         MYTH_NOEC(vec4, T_OFLOW)
+         MYTH_NULL()
+         MYTH_NOEC(vec6, T_BOUND)
+        MYTH_NOEC(vec7, T_DEVICE)
+         MYTH(vec8, T_DBLFLT)
+         MYTH_NULL()
+         MYTH(vec10, T_TSS)
+         MYTH(vec11, T_SEGNP)
+         MYTH(vec12, T_STACK)
+         MYTH(vec13, T_GPFLT)
+         MYTH(vec14, T_PGFLT) 
+         MYTH_NULL()
+         MYTH_NOEC(vec16, T_FPERR)
+         MYTH(vec17, T_ALIGN)
+         MYTH_NOEC(vec18, T_MCHK)
+         MYTH_NOEC(vec19, T_SIMDERR)
+          
+    TRAPHANDLER_NOEC(vec48, T_SYSCALL)
+
+/*
+ * Lab 3: Your code here for _alltraps
+ */
+_alltraps:
+        pushl %ds
+        pushl %es
+        pushal
+
+        movl $GD_KD, %eax
+        movw %ax, %ds
+        movw %ax, %es
+
+        pushl %esp
+        call trap
+
+.globl sysenter_handler
+.type sysenter_handler, @function
+sysenter_handler:
+
+        pushl %esi;
+        pushl %ebp;
+        # pushl %oesp  (Useless)
+        pushl %ebx;
+
+        pushl $0     # in most of syscall, last argument will be 0
+        pushl %edi
+        pushl %ebx
+        pushl %ecx
+        pushl %edx
+        pushl %eax
+        call syscall
+        popl %edx
+        popl %edx
+        popl %ecx
+        popl %ebx
+        popl %edi
+        popl %ecx        # %ecx will be covered by %ebp, so it will be ok
+
+        popl %ebx;
+        #popl %oesp  (Useless)
+        popl %ebp;        
+        popl %esi;
+        movl %esi, %edx
+        movl %ebp, %ecx
+        sysexit
+

@@ -1,0 +1,35 @@
+" Press <F1> to display help text
+ 
+pmap.c (/home/plutoshe/PlutoShe/Os/JOS_OperatingSystemlab/lab3/kern)
+  variable
+    npages
+    npages_basemem
+    kern_pgdir
+    pages
+    page_free_list
+    user_mem_check_addr
+
+  function
+    nvram_read
+    i386_detect_memory
+    boot_alloc
+    mem_init
+    page_init
+    page_alloc
+    page_free
+    page_decref
+    pgdir_walk
+    boot_map_region
+    page_insert
+    page_lookup
+    page_remove
+    tlb_invalidate
+    user_mem_check
+    user_mem_assert
+    check_page_free_list
+    check_page_alloc
+    check_kern_pgdir
+    check_va2pa
+    check_page
+    check_page_installed_pgdir
+ 
