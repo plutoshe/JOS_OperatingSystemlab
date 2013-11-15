@@ -179,11 +179,13 @@ int mon_changePermission(int argc, char **argv, struct Trapframe *tf)
 
 
 int mon_showPT(int argc, char **argv, struct Trapframe *tf) {
-	uintptr_t va;
+	extern int gdtdesc;
+	cprintf("%x", *((uint32_t*)KADDR(GD_KT)));
+/*	uintptr_t va;
 	if (!pxtoi(&va, argv[1])) return 0;
 	
 	pte_t *mapper = pgdir_walk(kern_pgdir, (void*) ((va >> PDXSHIFT) << PDXSHIFT), 1);
-	cprintf("Page Table Entry Address : 0x%08x\n", mapper); 
+	cprintf("Page Table Entry Address : 0x%08x\n", mapper); */
 	return 0;
 }
 #define POINT_SIZE 4

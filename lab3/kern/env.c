@@ -122,7 +122,9 @@ env_init(void)
 		envs[i].env_id = 0;
 		envs[i].env_link = env_free_list;
 		env_free_list = &envs[i];
-	}/*
+	}
+	
+	/*
     uint32_t i;
     env_free_list = envs;
     for (i = 0; i < NENV; i++) {
