@@ -41,7 +41,7 @@ i386_init(void)
 	env_init();
 	trap_init();
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
 	// Lab 4 multiprocessor initialization functions
 	mp_init();
 	lapic_init();
@@ -53,16 +53,22 @@ i386_init(void)
 	// Your code here:
 
 	// Starting non-boot CPUs
+	lock_kernel();
 	boot_aps();
-=======
+/*=======
 >>>>>>> lab3
-
+*/
 #if defined(TEST)
 	// Don't touch -- used by grading script!
 	ENV_CREATE(TEST, ENV_TYPE_USER);
 #else
 	// Touch all you want.
-	ENV_CREATE(user_primes, ENV_TYPE_USER);
+//	ENV_CREATE(user_primes, ENV_TYPE_USER);
+	ENV_CREATE(user_yield, ENV_TYPE_USER);
+	ENV_CREATE(user_yield, ENV_TYPE_USER);
+	ENV_CREATE(user_yield, ENV_TYPE_USER);
+//	ENV_CREATE(user_primes, ENV_TYPE_USER);
+//	ENV_CREATE(user_primes, ENV_TYPE_USER);
 #endif // TEST*
 
 	// Schedule and run the first user environment!
@@ -120,8 +126,9 @@ mp_main(void)
 	//
 	// Your code here:
 
+	lock_kernel();
+	sched_yield();
 	// Remove this after you finish Exercise 4
-	for (;;);
 }
 
 /*

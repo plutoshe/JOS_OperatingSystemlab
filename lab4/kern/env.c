@@ -309,7 +309,7 @@ region_alloc(struct Env *e, void *va, size_t len)
 	size_t begin = ROUNDDOWN((size_t)va, PGSIZE);
 	size_t end = ROUNDUP(((size_t)va) + len, PGSIZE);
 	for (;begin != end; begin += PGSIZE) {
-		struct PageInfo *temp = page_alloc(PGSIZE);
+		struct PageInfo *temp = page_alloc(0);
 		if (!temp) {
 			panic("alloc fail");
 			return;
@@ -399,9 +399,9 @@ load_icode(struct Env *e, uint8_t *binary, size_t size)
 
 
 		}
-	e->env_tf.tf_eip = now->e_entry;
 
 	lcr3(PADDR(kern_pgdir));
+	e->env_tf.tf_eip = now->e_entry;
 	region_alloc(e, (void*) (USTACKTOP - PGSIZE), PGSIZE);
 
 }	
@@ -559,7 +559,8 @@ env_run(struct Env *e)
 	curenv->env_status = ENV_RUNNING ;
 	curenv->env_runs++;
 	lcr3(PADDR(curenv->env_pgdir));
+	unlock_kernel();
 	env_pop_tf(&curenv->env_tf);
-	panic("env_run not yet implemented");
+//	panic("env_run not yet implemented");
 }
 
