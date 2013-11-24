@@ -44,11 +44,11 @@ pgfault(struct UTrapframe *utf)
 	//   No need to explicitly delete the old page's mapping.
 
 	// LAB 4: Your code here.
-	r = sys_page_alloc(0, (void*)PFTEMP, PTE_P | PTE_COW | PTE_U);
+	r = sys_page_alloc(0, (void*)PFTEMP, PTE_P | PTE_W | PTE_U);
 	if (r < 0) panic("page alloc failed");
 	addr = ROUNDDOWN (addr, PGSIZE);
 	memcpy(PFTEMP, addr, PGSIZE);
-	r =	sys_page_map(0, (void*) PFTEMP, 0, addr, PTE_P | PTE_COW | PTE_U);
+	r =	sys_page_map(0, (void*) PFTEMP, 0, addr, PTE_P | PTE_W | PTE_U);
 	if (r < 0) panic("sys_page_map failed");
 
 	//panic("pgfault not implemented");

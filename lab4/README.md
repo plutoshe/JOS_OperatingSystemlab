@@ -85,4 +85,6 @@ All done in environment 00001000.
  [00001000] user panic in <unknown> at user/dumbfork.c:78: sys_env_set_status: invalid parameter
 没有写相应的系统调用的case
 
-
+卡了2次地方，调试了3个小时，
+在fork.c中的pgfault一个是给权限给错了，给成了PTE_COW
+在duppage中的uvpt写成了uvpd
