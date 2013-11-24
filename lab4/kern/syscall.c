@@ -144,6 +144,7 @@ sys_env_set_pgfault_upcall(envid_t envid, void *func)
 	int r = envid2env(envid, &e, 1);
 	if (r < 0) return r; //-E_BAD_ENV;   
 	e->env_pgfault_upcall = func;
+	cprintf("sys %d\n", e->env_tf.tf_err);
 	return 0;
 //	panic("sys_env_set_pgfault_upcall not implemented");
 }
@@ -378,8 +379,9 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		case SYS_env_set_status :
 			return sys_env_set_status((envid_t) a1, (int)a2);
 			goto _success_invoke;
-		case sys_env_set_pgfault_upcall :
-			return sys_env_set_pgfault_upcall;
+		case SYS_env_set_pgfault_upcall :
+			return sys_env_set_pgfault_upcall((envid_t) a1, (void*)a2);
+			goto _success_invoke;
 		default :
 			return -E_INVAL;
 		

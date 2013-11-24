@@ -11,6 +11,7 @@ forkchild(const char *cur, char branch)
 {
 	char nxt[DEPTH+1];
 
+	cprintf("!");
 	if (strlen(cur) >= DEPTH)
 		return;
 
