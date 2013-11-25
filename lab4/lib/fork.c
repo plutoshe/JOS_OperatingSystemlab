@@ -107,6 +107,7 @@ envid_t
 fork(void)
 {
 	// LAB 4: our code here.
+//	static int pri = 10000;
 	set_pgfault_handler(pgfault);
 	int envid = sys_exofork();
 	if (envid < 0) {
@@ -133,6 +134,8 @@ fork(void)
 	 	r = sys_env_set_pgfault_upcall(envid, _pgfault_upcall);
 	 	if (r < 0) 
 			panic("set pgfault upcall fail : %e", r);
+	//	pri--;
+	//	sys_change_priority(envid, pri);
 	 	r = sys_env_set_status(envid, ENV_RUNNABLE);
 
 	 	if (r < 0) 

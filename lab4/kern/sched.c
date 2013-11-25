@@ -37,13 +37,21 @@ sched_yield(void)
 		now = 0;
 //		cprintf("** %d\n",now);
 	}
+	int j = -1, max = 0;
 	for (i = 0; i < NENV; i++, now = (now + 1) % NENV) {
 //		if (now == 1) cprintf("%d  %d\n",ENV_RUNNABLE,envs[now].env_status);
-		if (envs[now].env_status == ENV_RUNNABLE) {
+		if (envs[now].env_status == ENV_RUNNABLE && (envs[now].priority > max || j == -1)) {
 //		    cprintf("-- %d\n",now);
-			env_run(&envs[now]);
+			j = now;
+			max = envs[now].priority;
+//			env_run(&envs[now]);
 		}
 	}
+//	cprintf("hahahahah%d%d ", j, max);
+	if (j >= 0 && (!curenv || curenv->env_status != ENV_RUNNING || max >= curenv->priority)) {
+		env_run(&envs[j]);
+	}
+
 	if (curenv && curenv->env_status == ENV_RUNNING) {
        //cprintf("&& %d\n",now-1);
        env_run(curenv);

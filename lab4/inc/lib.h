@@ -44,6 +44,7 @@ int	sys_cgetc(void);
 envid_t	sys_getenvid(void);
 int	sys_env_destroy(envid_t);
 void	sys_yield(void);
+void sys_change_priority(envid_t envid, int p);
 static envid_t sys_exofork(void);
 int	sys_env_set_status(envid_t env, int status);
 int	sys_env_set_pgfault_upcall(envid_t env, void *upcall);

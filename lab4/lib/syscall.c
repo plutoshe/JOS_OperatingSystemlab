@@ -67,6 +67,11 @@ sys_yield(void)
 	syscall(SYS_yield, 0, 0, 0, 0, 0, 0);
 }
 
+void
+sys_change_priority(envid_t envid, int p) 
+{
+	syscall(SYS_change_priority, 0, (envid_t) envid, (int) p, 0, 0, 0);
+}
 int
 sys_page_alloc(envid_t envid, void *va, int perm)
 {

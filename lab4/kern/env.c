@@ -423,6 +423,7 @@ env_create(uint8_t *binary, size_t size, enum EnvType type)
 	if (env_alloc(&e, 0) < 0) panic("wrong");
 	load_icode(e, binary, size);
 	e->env_type = type;
+	e->priority = 0;
 	return;
 }
 

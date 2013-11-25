@@ -54,7 +54,6 @@ sys_env_destroy(envid_t envid)
 {
 	int r;
 	struct Env *e;
-
 	if ((r = envid2env(envid, &e, 1)) < 0)
 		return r;
 	if (e == curenv)
@@ -360,16 +359,28 @@ sys_ipc_recv(void *dstva)
 {
 	// LAB 4: Your code here.
 	if (((uint32_t)dstva < UTOP) && ROUNDDOWN(dstva , PGSIZE) != dstva)  return -E_INVAL;
-        curenv->env_ipc_recving = 1;
-        curenv->env_status = ENV_NOT_RUNNABLE;
-        curenv->env_ipc_dstva = dstva;
-	curenv ->env_ipc_from = 0;
+    curenv->env_ipc_recving = 1;
+    curenv->env_status = ENV_NOT_RUNNABLE;
+    curenv->env_ipc_dstva = dstva;
+	curenv->env_ipc_from = 0;
 	sched_yield ();
-        return 0;
+    return 0;
 	//panic("sys_ipc_recv not implemented");
 	//return 0;
 }
-
+static void sys_change_priority(envid_t envid, int p) {
+	struct Env *e;
+	int r;
+	r = envid2env(envid, &e, 1);
+	cprintf("===%8x\n", envid);
+	if (r < 0) {
+		cprintf("wrong envid\n");
+		return;
+	}
+	e->priority = p;
+	cprintf("%d", envs[envid].priority);
+	return;
+}
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -416,6 +427,9 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 			return sys_ipc_try_send((envid_t)a1, (uint32_t) a2, (void*) a3, (unsigned) a4);
 		case SYS_ipc_recv :
 			return sys_ipc_recv((void*) a1);
+		case SYS_change_priority :
+			sys_change_priority((envid_t) a1, (int) a2);
+			goto _success_invoke;
 		default :
 			return -E_INVAL;
 		
