@@ -32,20 +32,20 @@ sched_yield(void)
 	int now, i;
 	if (curenv) {
 		now = (ENVX(curenv->env_id) + 1)% NENV;
-		cprintf("^^ %d\n",now-1);
+//		cprintf("^^ %d\n",now-1);
 	} else {
 		now = 0;
-		cprintf("** %d\n",now);
+//		cprintf("** %d\n",now);
 	}
 	for (i = 0; i < NENV; i++, now = (now + 1) % NENV) {
-		if (now == 1) cprintf("%d  %d\n",ENV_RUNNABLE,envs[now].env_status);
+//		if (now == 1) cprintf("%d  %d\n",ENV_RUNNABLE,envs[now].env_status);
 		if (envs[now].env_status == ENV_RUNNABLE) {
-		    cprintf("-- %d\n",now);
+//		    cprintf("-- %d\n",now);
 			env_run(&envs[now]);
 		}
 	}
 	if (curenv && curenv->env_status == ENV_RUNNING) {
-       cprintf("&& %d\n",now-1);
+       //cprintf("&& %d\n",now-1);
        env_run(curenv);
 	}
 	

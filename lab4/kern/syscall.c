@@ -97,7 +97,7 @@ sys_exofork(void)
 	e->env_tf = curenv->env_tf;
 //	memcpy((void*) (&e->env_tf), (void*)(&curenv->env_tf), sizeof(struct Trapframe));
 	e->env_tf.tf_regs.reg_eax = 0;
-	cprintf("e pgdir: %x\n", e, e->env_pgdir);
+	//cprintf("e pgdir: %x\n", e, e->env_pgdir);
 	return e->env_id;
 //	panic("sys_exofork not implemented");
 }
@@ -318,7 +318,30 @@ static int
 sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_try_send not implemented");
+	struct Env *e;
+        int r = envid2env(envid, &e, 0);
+        if (r) return r;
+        if (!e->env_ipc_recving || e->env_ipc_from != 0) return -E_IPC_NOT_RECV;
+        if (srcva < (void*)UTOP) {
+                pte_t *pte;
+                struct PageInfo *pg = page_lookup(curenv->env_pgdir, srcva, &pte);
+                if (!pg) return -E_INVAL;
+                if ((*pte & perm & 7) != (perm & 7)) return -E_INVAL;
+                if ((perm & PTE_W) && !(*pte & PTE_W)) return -E_INVAL;
+                if (srcva != ROUNDDOWN(srcva, PGSIZE)) return -E_INVAL;
+                if (e->env_ipc_dstva < (void*)UTOP) {
+                        r = page_insert(e->env_pgdir, pg, e->env_ipc_dstva, perm);
+                        if (r) return r;
+                        e->env_ipc_perm = perm;
+                }
+        }
+        e->env_ipc_recving = 0;
+        e->env_ipc_from = curenv->env_id;
+        e->env_ipc_value = value; 
+        e->env_status = ENV_RUNNABLE;
+        e->env_tf.tf_regs.reg_eax = 0;
+        return 0;
+	//panic("sys_ipc_try_send not implemented");
 }
 
 // Block until a value is ready.  Record that you want to receive
@@ -336,8 +359,15 @@ static int
 sys_ipc_recv(void *dstva)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_recv not implemented");
-	return 0;
+	if (((uint32_t)dstva < UTOP) && ROUNDDOWN(dstva , PGSIZE) != dstva)  return -E_INVAL;
+        curenv->env_ipc_recving = 1;
+        curenv->env_status = ENV_NOT_RUNNABLE;
+        curenv->env_ipc_dstva = dstva;
+	curenv ->env_ipc_from = 0;
+	sched_yield ();
+        return 0;
+	//panic("sys_ipc_recv not implemented");
+	//return 0;
 }
 
 // Dispatches to the correct kernel function, passing the arguments.
@@ -382,6 +412,10 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		case SYS_env_set_pgfault_upcall :
 			return sys_env_set_pgfault_upcall((envid_t) a1, (void*)a2);
 			goto _success_invoke;
+		case SYS_ipc_try_send :
+			return sys_ipc_try_send((envid_t)a1, (uint32_t) a2, (void*) a3, (unsigned) a4);
+		case SYS_ipc_recv :
+			return sys_ipc_recv((void*) a1);
 		default :
 			return -E_INVAL;
 		

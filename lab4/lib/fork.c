@@ -24,9 +24,9 @@ pgfault(struct UTrapframe *utf)
 	//   Use the read-only page table mappings at uvpt
 	//   (see <inc/memlayout.h>).
 	// LAB 4: Your code here.
-	cprintf("err %d %d\n", err, err & FEC_WR);
-				cprintf("%d %d %d\n",addr, ((uint32_t)addr) / PGSIZE, uvpt[((uint32_t)addr) / PGSIZE] & PTE_COW);//uvpd[PDX(addr)] & PTE_P);
-				cprintf("%d %d\n",((uint32_t)977917*PGSIZE) / PGSIZE, uvpt[977917] & PTE_COW);//uvpd[PDX(addr)] & PTE_P);
+//	cprintf("err %d %d\n", err, err & FEC_WR);
+//				cprintf("%d %d %d\n",addr, ((uint32_t)addr) / PGSIZE, uvpt[((uint32_t)addr) / PGSIZE] & PTE_COW);//uvpd[PDX(addr)] & PTE_P);
+//				cprintf("%d %d\n",((uint32_t)977917*PGSIZE) / PGSIZE, uvpt[977917] & PTE_COW);//uvpd[PDX(addr)] & PTE_P);
 	if (!(err & FEC_WR)) {
 		panic("FEC_WR fault access check failed");
 	}
@@ -114,18 +114,18 @@ fork(void)
 	}
 	int r;
 	if (envid == 0) {
-		cprintf("child\n");
+//		cprintf("child\n");
 		thisenv = &envs[ENVX(sys_getenvid())];
 		return 0;
 	} else {
-		cprintf("father\n");
+//		cprintf("father\n");
 		uint32_t i;
 		for (i = 0; i != UTOP; i += PGSIZE)
 			if ((uvpd[PDX(i)] & PTE_P) && (uvpt[i / PGSIZE] & PTE_P) && (uvpt[i / PGSIZE] & PTE_U)) {
 				cprintf("%d\n", uvpd[PDX(i)] & PTE_P);
 	 			duppage(envid, i / PGSIZE);
 	 		}
-		cprintf("father1\n");
+//		cprintf("father1\n");
 	 	r = sys_page_alloc(envid, (void *)(UXSTACKTOP - PGSIZE), PTE_U |PTE_W | PTE_P);
 	 	if (r < 0) 
 			panic("sys_page_alloc: %e", r);

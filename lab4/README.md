@@ -1,4 +1,4 @@
-JOS Lab3 Report
+JOS Lab4 Report
 ====================================
 Result
 ----------------------------
@@ -30,7 +30,7 @@ size = ROUNDUP(pa+size, PGSIZE);
 ```
 
 exercise 2
-———
+----------------------------
 ```
 Exercise 2. Read boot_aps() and mp_main() in kern/init.c, and the assembly code in kern/mpentry.S. Make sure you understand the control flow transfer during the bootstrap of APs. Then modify your implementation of page_init() in kern/pmap.c to avoid adding the page at MPENTRY_PADDR to the free list, so that we can safely copy and run AP bootstrap code at that physical address. Your code should pass the updated check_page_free_list() test (but might fail the updated check_kern_pgdir() test, which we will fix soon).
 ```
@@ -60,7 +60,7 @@ Hint: recall the differences between the link address and the load address that 
 ```
 因为这里已经是高位地址，而我们需要链接的是对应低地址的代码，如果不使用MPBOOTPHYS宏将高地址转换为低地址的话，程序会引起page fault
 exercise 3
-———
+----------------------------
 ```
 Modify mem_init_mp() (in kern/pmap.c) to map per-CPU stacks starting at KSTACKTOP, as shown in inc/memlayout.h. The size of each stack is KSTKSIZE bytes plus KSTKGAP bytes of unmapped guard pages. Your code should pass the new check in check_kern_pgdir().
 ```
@@ -75,7 +75,7 @@ Modify mem_init_mp() (in kern/pmap.c) to map per-CPU stacks starting at KSTACKTO
 
 
 exercise 4
-———
+----------------------------
 ```
 The code in trap_init_percpu() (kern/trap.c) initializes the TSS and TSS descriptor for the BSP. It worked in Lab 3, but is incorrect when running on other CPUs. Change the code so that it can work on all CPUs. (Note: your new code should not use the global ts variable any more.)
 ```
@@ -91,20 +91,20 @@ The code in trap_init_percpu() (kern/trap.c) initializes the TSS and TSS descrip
 	lidt(&idt_pd);
 ```
 exercise 5
-———
+----------------------------
 ```
 Apply the big kernel lock as described above, by calling lock_kernel() and unlock_kernel() at the proper locations.
 ```
 ###exercise5解答
 为了防止多个进程不会同时进入内核模式，所以我们使用了锁来保护，按照注释在对应的4个地方acquire或者release锁即可。
 Question
-——-
+----------------------------
 ```
 It seems that using the big kernel lock guarantees that only one CPU can run the kernel code at a time. Why do we still need separate kernel stacks for each CPU? Describe a scenario in which using a shared kernel stack will go wrong, even with the protection of the big kernel lock.
 ```
 还是不能共享内核栈，因为内核栈中存储着需要恢复的环境，如果多个内核共用的话，内核栈里存储的需要恢复的环境在恢复时会产生混乱。
 exercise 6
-———
+----------------------------
 ```
 Implement round-robin scheduling in sched_yield() as described above. Don't forget to modify syscall() to dispatch sys_yield().
 
@@ -185,7 +185,7 @@ All done in environment 00001000.
 ```
 他一直在1000环境下，这里我一开始非常不理解，我查看了我的调度程序很久并没有发现错误，最后非常伤心的是原因是因为在syscall中的getenvid我没有return他的返回值，导致他的返回值一直是0，所以才出现了这样的错误，这个错误让我调了1个多小时。
 Question
-———
+----------------------------
 
 ```
 In your implementation of env_run() you should have called lcr3(). Before and after the call to lcr3(), your code makes references (at least it should) to the variable e, the argument to env_run. Upon loading the %cr3 register, the addressing context used by the MMU is instantly changed. But a virtual address (namely e) has meaning relative to a given address context--the address context specifies the physical address to which the virtual address maps. Why can the pointer e be dereferenced both before and after the addressing switch?
@@ -199,7 +199,7 @@ Whenever the kernel switches from one environment to another, it must ensure the
 ```
 因为之后cpu要进行环境的恢复，如果不保存好的话，之后对于该进程的恢复会产生问题。
 exercise 7
-———
+----------------------------
 ```
 Implement the system calls described above in kern/syscall.c. You will need to use various functions in kern/pmap.c and kern/env.c, particularly envid2env(). For now, whenever you call envid2env(), pass 1 in the checkperm parameter. Be sure you check for any invalid system call arguments, returning -E_INVAL in that case. Test your JOS kernel with user/dumbfork and make sure it works before proceeding.
 ```
@@ -278,7 +278,9 @@ sys_page_map:
 	return 0;
 
 ```
-这里是将2个进程的对应的地址空间进行映射，按照注释进行判断和映射做下去就可以了。 <br />
+这里是将2个进程的对应的地址空间进行映射，将 srcenvid 进程地址空间中的线性地址 srcva 的页映射到 dstenvid 进程地址空间中的dstva 地址处,并设置页属性为 perm。
+此处的操作并非数据拷贝而是页表操作,即两进程共享同一个页的地址，即实现之后COPY-ON-Write技术的只读内存共享的操作。
+<br />
 sys_page_unmap:
 ```
 
@@ -307,8 +309,9 @@ Welcome to the JOS kernel monitor!
 Part B: Copy-on-Write Fork
 ===
 这里part主要是针对fork函数，在dumb fork测试程序中，我们已经实现了实现了一个基本的fork函数，而copy-on-write技术可以使得我们更加有效的fork，这个技术的优势是在复制一个对象的时候并不是真正的把原先的对象复制到内存的另外一个位置上，而是在新对象的内存映射表中设置一个指针，指向源对象的位置，并把那块内存的Copy-On-Write位设置为1.在对这个对象执行读操作的时候，内存数据没有变动，直接执行就可以。在写的时候，才真正将原始对象复制一份到新的地址，修改新对象的内存映射表到这个新的位置。这样能高效的进行fork，只对很少的一部分内存进行操作。而我们之后的工作就是实现这样的一个技术。
+
 exercise 8
-———
+-----
 ```
 Implement the sys_env_set_pgfault_upcall system call. Be sure to enable permission checking when looking up the environment ID of the target environment, since this is a "dangerous" system call.
 ```
@@ -323,7 +326,7 @@ Implement the sys_env_set_pgfault_upcall system call. Be sure to enable permissi
 ```
 在这里的按照注释进行对于进程的page_upcall的处理程序进行编写即可，这里的作用是用户进程调用系统调用告知系统我的page fault的处理程序。
 exercise 9
-———
+----------------------------
 ```
 Implement the code in page_fault_handler in kern/trap.c required to dispatch page faults to the user-mode handler. Be sure to take appropriate precautions when writing into the exception stack. (What happens if the user environment runs out of space on the exception stack?)
 ```
@@ -358,7 +361,7 @@ Implement the code in page_fault_handler in kern/trap.c required to dispatch pag
 ```
 这里是如果是user差生的page fault的话我们切换到的栈为UTrapframe，而这么做更高效的原因是由于因为是进程内的pgfault，所以进程中的很多环境都不会变化，所以做到了更为高效。这里需要注意的是如果是递归调用的话，它需要多空出一个32 bit的空间以来实现在excepion stack中的递归调用。
 exercise 10
-———
+----------------------------
 ```
  Implement the _pgfault_upcall routine in lib/pfentry.S. The interesting part is returning to the original point in the user code that caused the page fault. You'll return directly there, without going back through the kernel. The hard part is simultaneously switching stacks and re-loading the EIP.
 ```
@@ -391,9 +394,10 @@ exercise 10
 	// LAB 4: Your code here.
 	ret
 ```
-这里非常感谢张弛的报告，他的报告非常详细的介绍了这段转换的每一步的作用而这样做的原因。首先
+这里非常感谢张弛的报告，他的报告非常详细的介绍了这段转换的每一步的作用而这样做的原因。在这个程序处理之前我们的栈里所有的是reserver 32 bit, 之后的trap结构的esp，eflags，Pushregs的结构，errcode，fault_va，所以我们出栈则是先加8跳过errcode，fault_va,之后是Pushregs的出栈，按照trapentrye.S同样处理，eflags类似处理，最后就到了esp和reserver 32 bit了，这里使用ret而对应的我们需要做一些处理，因为我们的返回地址是之前指向的esp往上4位，所以在之前我们对对应的esp做减4的操作，esp之后就会到该到的位置，而返回的地址为reserved 32 bit处，所以我们要调用为返回地址，在哪里找返回地址呢？在当前tf结构的eip中存储了之前的那一条语句地址，所以我们只需要将tf结构的eip值赋值给他即可。ret这条语句过后就能完美解决exception stack递归的问题了。
+
 exercise 11
-———
+----------------------------
 ```
 Finish set_pgfault_handler() in lib/pgfault.c.
 ```
@@ -415,31 +419,153 @@ Finish set_pgfault_handler() in lib/pgfault.c.
 ```
 这里的代码需要将对应的user的pgfault的处理函数进行注册，并且分配对应的exception stack的空间。按照注释来十分容易实现，只是要注意的是，栈空间是从高到低，所以在page分配的时候应该分配UXSTACKTOP - PGSIZE的地方以上的page给他，这个我一开始并没有注意。 <br />
 Make sure you understand why user/faultalloc and user/faultallocbad behave differently.这里lab问了这么一个问题，以我的理解为cprintf在调用cputs之前跳到了相应的地址导致page fault的引发，导致了之后user_mem检查的通过，而cputs由于没有做对应的Page fault所以检查对应地址的时候会发生失败。
+用户进程
+
 
 exercise 12
-———
+----------------------------
 ```
+ Implement fork, duppage and pgfault in lib/fork.c.
+
+Test your code with the forktree program. It should produce the following messages, with interspersed 'new env', 'free env', and 'exiting gracefully' messages. The messages may not appear in this order, and the environment IDs may be different.
+
+	1000: I am ''
+	1001: I am '0'
+	2000: I am '00'
+	2001: I am '000'
+	1002: I am '1'
+	3000: I am '11'
+	3001: I am '10'
+	4000: I am '100'
+	1003: I am '01'
+	5000: I am '010'
+	4001: I am '011'
+	2002: I am '110'
+	1004: I am '001'
+	1005: I am '111'
+	1006: I am '101'
 ```
+这里需要你实现一个完整的运用COW技术的fork函数，有以下的3个函数需要完成。<br />
+
+pgfault:
+```
+void *addr = (void *) utf->utf_fault_va;
+	uint32_t err = utf->utf_err;
+	int r;
+	cprintf("err %d %d\n", err, err & FEC_WR);
+				cprintf("%d %d %d\n",addr, ((uint32_t)addr) / PGSIZE, uvpt[((uint32_t)addr) / PGSIZE] & PTE_COW);//uvpd[PDX(addr)] & PTE_P);
+				cprintf("%d %d\n",((uint32_t)977917*PGSIZE) / PGSIZE, uvpt[977917] & PTE_COW);//uvpd[PDX(addr)] & PTE_P);
+	if (!(err & FEC_WR)) {
+		panic("FEC_WR fault access check failed");
+	}
+	if ((uvpd[PDX(addr)] & PTE_P) == 0 || (uvpt[((uint32_t)addr) / PGSIZE] & PTE_COW) == 0)
+	{
+		panic("fault access check failed");
+	}
+
+	r = sys_page_alloc(0, (void*)PFTEMP, PTE_P | PTE_W | PTE_U);
+	if (r < 0) panic("page alloc failed");
+	addr = ROUNDDOWN (addr, PGSIZE);
+	memcpy(PFTEMP, addr, PGSIZE);
+	r =	sys_page_map(0, (void*) PFTEMP, 0, addr, PTE_P | PTE_W | PTE_U);
+	if (r < 0) panic("sys_page_map failed");
+
+```
+这里需要完成的是对相应的权限的检查加上之后
+<br />
+duppage:
+```
+	if (pn * PGSIZE == UXSTACKTOP - PGSIZE) return 0;
+
+int r;
+
+	// LAB 4: Your code here.
+	if ((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)) {
+		r = sys_page_map(0, (void*) (pn * PGSIZE), envid, (void*) (pn * PGSIZE), PTE_U | PTE_P | PTE_COW);
+		if (r < 0) panic("map failed");
+		r = sys_page_map(0, (void*) (pn * PGSIZE), 0, (void*) (pn * PGSIZE), PTE_U | PTE_P | PTE_COW);
+		if (r < 0) panic("map failed");
+	}
+	else {
+		r = sys_page_map(0, (void*) (pn * PGSIZE), envid, (void*) (pn * PGSIZE), PTE_U | PTE_P);
+		if (r < 0) panic("map failed");
+	}
+//	panic("duppage not implemented");
+	return 0;
+```
+这部分就是实现页表的复制,需要区分读和写即可。如果是读,则需要更改子进程的同时自己页表的标志位也需要更改。
+<br />
+fork:
+```
+set_pgfault_handler(pgfault);
+	int envid = sys_exofork();
+	if (envid < 0) {
+		panic("sys_exofork: %e", envid);
+	}
+	int r;
+	if (envid == 0) {
+		cprintf("child\n");
+		thisenv = &envs[ENVX(sys_getenvid())];
+		return 0;
+	} else {
+		cprintf("father\n");
+		uint32_t i;
+		for (i = 0; i != UTOP; i += PGSIZE)
+			if ((uvpd[PDX(i)] & PTE_P) && (uvpt[i / PGSIZE] & PTE_P) && (uvpt[i / PGSIZE] & PTE_U)) {
+				cprintf("%d\n", uvpd[PDX(i)] & PTE_P);
+	 			duppage(envid, i / PGSIZE);
+	 		}
+		cprintf("father1\n");
+	 	r = sys_page_alloc(envid, (void *)(UXSTACKTOP - PGSIZE), PTE_U |PTE_W | PTE_P);
+	 	if (r < 0) 
+			panic("sys_page_alloc: %e", r);
+	 	extern void _pgfault_upcall(void);
+	 	r = sys_env_set_pgfault_upcall(envid, _pgfault_upcall);
+	 	if (r < 0) 
+			panic("set pgfault upcall fail : %e", r);
+	 	r = sys_env_set_status(envid, ENV_RUNNABLE);
+
+	 	if (r < 0) 
+			panic("set child process to ENV_RUNNABLE error : %e", r);
+	 	return envid;
+	}
+	panic("fork not implemented");
+```
+set_pgfault_handler(handler)->sys_env_set_pgfault_upcall()->注册用户页错误处理函数->如果发生页错误,在trap.c中的page_fault_handler()进行处理->_pgfault_upcall()调用页错误处理函数并返回用户进程
+卡了2次地方，调试了3个小时，
+在fork.c中的pgfault一个是给权限给错了，给成了PTE_COW
+在duppage中的uvpt写成了uvpd
 ###exercise12解答
 exercise 13
-———
+----------------------------
 ```
+ Modify kern/trapentry.S and kern/trap.c to initialize the appropriate entries in the IDT and provide handlers for IRQs 0 through 15. Then modify the code in env_alloc() in kern/env.c to ensure that user environments are always run with interrupts enabled.
+
+The processor never pushes an error code or checks the Descriptor Privilege Level (DPL) of the IDT entry when invoking a hardware interrupt handler. You might want to re-read section 9.2 of the 80386 Reference Manual, or section 5.8 of the IA-32 Intel Architecture Software Developer's Manual, Volume 3, at this time.
+
+After doing this exercise, if you run your kernel with any test program that runs for a non-trivial length of time (e.g., spin), you should see the kernel print trap frames for hardware interrupts. While interrupts are now enabled in the processor, JOS isn't yet handling them, so you should see it misattribute each interrupt to the currently running user environment and destroy it. Eventually it should run out of environments to destroy and drop into the monitor.
 ```
 ###exercise13解答
 exercise 14
-———
+----------------------------
 ```
+Modify the kernel's trap_dispatch() function so that it calls sched_yield() to find and run a different environment whenever a clock interrupt takes place.
+
+You should now be able to get the user/spin test to work: the parent environment should fork off the child, sys_yield() to it a couple times but in each case regain control of the CPU after one time slice, and finally kill the child environment and terminate gracefully.
 ```
 ###exercise14解答
 exercise 15
-———
+----------------------------
 ```
+Implement sys_ipc_recv and sys_ipc_try_send in kern/syscall.c. Read the comments on both before implementing them, since they have to work together. When you call envid2env in these routines, you should set the checkperm flag to 0, meaning that any environment is allowed to send IPC messages to any other environment, and the kernel does no special permission checking other than verifying that the target envid is valid.
+
+Then implement the ipc_recv and ipc_send functions in lib/ipc.c.
+
+Use the user/pingpong and user/primes functions to test your IPC mechanism. You might find it interesting to read user/primes.c to see all the forking and IPC going on behind the scenes.
 ```
 ###exercise15解答
 
 
  
 
-卡了2次地方，调试了3个小时，
-在fork.c中的pgfault一个是给权限给错了，给成了PTE_COW
-在duppage中的uvpt写成了uvpd
+
