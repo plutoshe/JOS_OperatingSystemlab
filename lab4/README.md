@@ -76,7 +76,7 @@ Exercise 2. Read boot_aps() and mp_main() in kern/init.c, and the assembly code 
 
 Question 
 这里通过参看
-——-
+---------------
 ```
 Compare kern/mpentry.S side by side with boot/boot.S. Bearing in mind that kern/mpentry.S is compiled and linked to run above KERNBASE just like everything else in the kernel, what is the purpose of macro MPBOOTPHYS? Why is it necessary in kern/mpentry.S but not in boot/boot.S? In other words, what could go wrong if it were omitted in kern/mpentry.S? 
 Hint: recall the differences between the link address and the load address that we have discussed in Lab 1.
@@ -221,6 +221,94 @@ Whenever the kernel switches from one environment to another, it must ensure the
 
 ```
 因为之后cpu要进行环境的恢复，如果不保存好的话，之后对于该进程的恢复会产生问题。
+Challenge! 
+-----------
+```
+Add a less trivial scheduling policy to the kernel, such as a fixed-priority scheduler that allows each environment to be assigned a priority and ensures that higher-priority environments are always chosen in preference to lower-priority environments. If you're feeling really adventurous, try implementing a Unix-style adjustable-priority scheduler or even a lottery or stride scheduler. (Look up "lottery scheduling" and "stride scheduling" in Google.)
+
+Write a test program or two that verifies that your scheduling algorithm is working correctly (i.e., the right environments get run in the right order). It may be easier to write these test programs once you have implemented fork() and IPC in parts B and C of this lab.
+```
+这个challenge十分的简单，只需要实现进行优先级调度的程序即可，我在sched_yield进行了如下的修改：
+```
+int now, i;
+	if (curenv) {
+		now = (ENVX(curenv->env_id) + 1)% NENV;
+	} else {
+		now = 0;
+	}
+	int j = -1, max = 0;
+	for (i = 0; i < NENV; i++, now = (now + 1) % NENV) {
+		if (envs[now].env_status == ENV_RUNNABLE && (envs[now].priority > max || j == -1)) {
+			j = now;
+			max = envs[now].priority;
+		}
+	}
+	if (j >= 0 && (!curenv || curenv->env_status != ENV_RUNNING || max >= curenv->priority)) {
+		env_run(&envs[j]);
+	}
+
+	if (curenv && curenv->env_status == ENV_RUNNING) {
+       //cprintf("&& %d\n",now-1);
+       env_run(curenv);
+	}
+
+```
+将对应的进程的寻找改为对就绪的进程中选取一个我们的优先级最高的进程进行执行，如果优先级相同，选择离上一个进程号最近的一个进程执行。同样的为了实现优先级，我们在struct Env中加入一个priority的变量来表示优先级，同样的我们为了可以在用户进程中改变我们进程的优先级，我实现了一个系统调用
+```
+static void sys_change_priority(envid_t envid, int p) {
+	struct Env *e;
+	int r;
+	r = envid2env(envid, &e, 1);
+	cprintf("===%8x\n", envid);
+	if (r < 0) {
+		cprintf("wrong envid\n");
+		return;
+	}
+	e->priority = p;
+	cprintf("%d", envs[envid].priority);
+	return;
+}
+```
+在这个函数中我们只需要改变对应进程号的优先级即可，需要注意的是我们同样的需要在lib/syscall.c中完成相应的程序的编写，接下来是如何判断该程序的正确性了，我在user/hello.c中使用了如下的代码
+```
+int i;
+	i = fork();
+		if (i != 0) {
+			sys_change_priority((envid_t) i, 1);
+//			cprintf("**%d\n", i);
+//			cpinrtf("%d", envs[i]->priority);
+			sys_yield();
+			cprintf("\n~~~%d\n", 0);
+			cprintf("\n~~~%d\n", 0);
+			cprintf("\n~~~%d\n", 0);
+		} else {
+			sys_yield();
+			cprintf("^^%d\n", i);
+			cprintf("\n!!!\n");
+			cprintf("\n!!!\n");
+			cprintf("\n!!!\n");
+			return;
+		}
+		i =fork();
+		if (i != 0) {
+			sys_change_priority(i, 3);
+			sys_yield();
+			cprintf("\n~~~%d\n", 0);
+			cprintf("\n~~~%d\n", 0);
+			cprintf("\n~~~%d\n", 0);
+			cprintf("\n~~~%d\n", 0);
+		} else {
+			cprintf("\n%d\n", 2);
+			cprintf("\n%d\n", 2);
+			cprintf("\n%d\n", 2);
+			cprintf("\n%d\n", 2);
+			return;
+		}
+
+```
+我们在父亲的进程中重新给我们的fork出来的child进程的优先级进行给予，然后再重新调度。
+这样我们可以预期的结果为第一个child进程的输出，父亲的输出，第二个child进程的输出，父亲的输出。<br />
+而我们得到的结果完全符合我们的预期。测试通过。
 exercise 7
 ----------------------------
 ```
@@ -569,6 +657,31 @@ The processor never pushes an error code or checks the Descriptor Privilege Leve
 After doing this exercise, if you run your kernel with any test program that runs for a non-trivial length of time (e.g., spin), you should see the kernel print trap frames for hardware interrupts. While interrupts are now enabled in the processor, JOS isn't yet handling them, so you should see it misattribute each interrupt to the currently running user environment and destroy it. Eventually it should run out of environments to destroy and drop into the monitor.
 ```
 ###exercise13解答
+这里如同lab3一样进行相应的中断的添加即可 <br />
+trapentry.S添加如下代码：
+```
+TRAPHANDLER_NOEC(irq_handler32, IRQ_OFFSET + IRQ_TIMER)
+TRAPHANDLER_NOEC(irq_handler33, IRQ_OFFSET + IRQ_KBD)
+TRAPHANDLER_NOEC(irq_handler36, IRQ_OFFSET + IRQ_SERIAL)
+TRAPHANDLER_NOEC(irq_handler39, IRQ_OFFSET + IRQ_SPURIOUS)
+TRAPHANDLER_NOEC(irq_handler46, IRQ_OFFSET + IRQ_IDE)
+TRAPHANDLER_NOEC(irq_handler51, IRQ_OFFSET + IRQ_ERROR)
+
+```
+trap.c进行映射：
+```
+	SETGATE(idt[IRQ_OFFSET + IRQ_TIMER], 0, GD_KT, irq_handler32, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_KBD], 0, GD_KT, irq_handler33, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_SERIAL], 0, GD_KT, irq_handler36, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_SPURIOUS], 0, GD_KT, irq_handler39, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_IDE], 0, GD_KT, irq_handler46, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_ERROR], 0, GD_KT, irq_handler51, 0);
+```
+需要注意的是在env_alloc的时候需要将eflages的if位设为1，以便之后使用
+```
+	e->env_tf.tf_eflags |= FL_IF；
+                                                          
+```
 exercise 14
 ----------------------------
 ```
@@ -577,6 +690,15 @@ Modify the kernel's trap_dispatch() function so that it calls sched_yield() to f
 You should now be able to get the user/spin test to work: the parent environment should fork off the child, sys_yield() to it a couple times but in each case regain control of the CPU after one time slice, and finally kill the child environment and terminate gracefully.
 ```
 ###exercise14解答
+在对应的trap.c中完成对应时钟中断对应的处理即可
+```
+	if (tf ->tf_trapno == IRQ_OFFSET + IRQ_TIMER) {
+		lapic_eoi();
+		sched_yield();
+		return;
+	}
+
+```
 exercise 15
 ----------------------------
 ```
@@ -587,7 +709,80 @@ Then implement the ipc_recv and ipc_send functions in lib/ipc.c.
 Use the user/pingpong and user/primes functions to test your IPC mechanism. You might find it interesting to read user/primes.c to see all the forking and IPC going on behind the scenes.
 ```
 ###exercise15解答
+最后的一个exercise也简单，它实现了进程间的通信，因为注释已经写的非常详细了，所以我们只需要对照注释好好的实现即可
 
+sys_ipc_try_send:
+```
+	// LAB 4: Your code here.
+	struct Env *e;
+        int r = envid2env(envid, &e, 0);
+        if (r) return r;
+        if (!e->env_ipc_recving || e->env_ipc_from != 0) return -E_IPC_NOT_RECV;
+        if (srcva < (void*)UTOP) {
+                pte_t *pte;
+                struct PageInfo *pg = page_lookup(curenv->env_pgdir, srcva, &pte);
+                if (!pg) return -E_INVAL;
+                if ((*pte & perm & 7) != (perm & 7)) return -E_INVAL;
+                if ((perm & PTE_W) && !(*pte & PTE_W)) return -E_INVAL;
+                if (srcva != ROUNDDOWN(srcva, PGSIZE)) return -E_INVAL;
+                if (e->env_ipc_dstva < (void*)UTOP) {
+                        r = page_insert(e->env_pgdir, pg, e->env_ipc_dstva, perm);
+                        if (r) return r;
+                        e->env_ipc_perm = perm;
+                }
+        }
+        e->env_ipc_recving = 0;
+        e->env_ipc_from = curenv->env_id;
+        e->env_ipc_value = value; 
+        e->env_status = ENV_RUNNABLE;
+        e->env_tf.tf_regs.reg_eax = 0;
+        return 0;
+	//panic("sys_ipc_try_send not implemented");
+
+```
+
+sys_ipc_recv
+```
+	// LAB 4: Your code here.
+	if (((uint32_t)dstva < UTOP) && ROUNDDOWN(dstva , PGSIZE) != dstva)  return -E_INVAL;
+    	curenv->env_ipc_recving = 1;
+  	curenv->env_status = ENV_NOT_RUNNABLE;
+ 	curenv->env_ipc_dstva = dstva;
+	curenv->env_ipc_from = 0;
+	sched_yield ();
+    	return 0;
+```
+int32_t
+ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
+{
+	// LAB 4: Your code here.
+	if (from_env_store) *from_env_store = 0;
+        if (perm_store) *perm_store = 0;
+        if (!pg) pg = (void*) -1;
+        int r = sys_ipc_recv(pg);
+        if (r) return r;
+        if (from_env_store)
+                *from_env_store = thisenv->env_ipc_from;
+        if (perm_store)
+                *perm_store = thisenv->env_ipc_perm;
+        return thisenv->env_ipc_value;
+	//panic("ipc_recv not implemented");
+	//return 0;
+}
+
+
+
+ipc_send:
+```
+	if (!pg) pg = (void*)-1;
+	int r;
+    	while ((r = sys_ipc_try_send(to_env, val, pg, perm))) {
+	    if (r == 0) break;
+            if (r != -E_IPC_NOT_RECV) panic("not E_IPC_NOT_RECV, %e", r);
+            sys_yield();
+    	}
+	return;
+```
 
  
 
