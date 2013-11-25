@@ -3,8 +3,31 @@ JOS Lab4 Report
 Result
 ----------------------------
 ```
+dumbfork: OK (3.2s) 
+Part A score: 5/5
+
+faultread: OK (1.6s) 
+faultwrite: OK (2.1s) 
+faultdie: OK (1.7s) 
+faultregs: OK (1.3s) 
+faultalloc: OK (1.6s) 
+faultallocbad: OK (1.8s) 
+faultnostack: OK (2.2s) 
+faultbadhandler: OK (2.3s) 
+faultevilhandler: OK (1.9s) 
+forktree: OK (2.3s) 
+Part B score: 50/50
+
+spin: OK (1.8s) 
+stresssched: OK (3.0s) 
+pingpong: OK (1.8s) 
+primes: OK (6.2s) 
+Part C score: 20/20
+
+Score: 75/75
 
 ```
+做这个lab的最大感受就是要综合的考虑整个系统，深入的了解它，充分的了解每个阶段每一步应该做些什么，反复推敲和思考，需要边编写代码边check，这是一个很大的工程，所以他的细节就都要考虑好，关于测试bug，要充分的分割，进行单元测试，ACM比赛中的输出调试在这么大的工程下并不好使，在大量的代码堆积下，你无法判断是哪一部分出的错，这并不像做美工一样，你可以非常明显的看出哪个地方有瑕疵，在这么浩大的工程中，你必须是对每个部件有深入的了解，不然即使发现出了错，也不知道如何改善，从这个lab中，我更多的学到的是如何去妥善的去完善我这个工程，测试我这个工程。
 
 
 Part A: Multiprocessor Support and Cooperative Multitasking
