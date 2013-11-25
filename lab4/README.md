@@ -75,7 +75,6 @@ Exercise 2. Read boot_aps() and mp_main() in kern/init.c, and the assembly code 
 ```
 
 Question 
-这里通过参看
 ---------------
 ```
 Compare kern/mpentry.S side by side with boot/boot.S. Bearing in mind that kern/mpentry.S is compiled and linked to run above KERNBASE just like everything else in the kernel, what is the purpose of macro MPBOOTPHYS? Why is it necessary in kern/mpentry.S but not in boot/boot.S? In other words, what could go wrong if it were omitted in kern/mpentry.S? 
@@ -556,6 +555,7 @@ Test your code with the forktree program. It should produce the following messag
 	1005: I am '111'
 	1006: I am '101'
 ```
+###exercise12解答
 这里需要你实现一个完整的运用COW技术的fork函数，有以下的3个函数需要完成。<br />
 
 pgfault:
@@ -642,11 +642,17 @@ set_pgfault_handler(pgfault);
 	}
 	panic("fork not implemented");
 ```
-set_pgfault_handler(handler)->sys_env_set_pgfault_upcall()->注册用户页错误处理函数->如果发生页错误,在trap.c中的page_fault_handler()进行处理->_pgfault_upcall()调用页错误处理函数并返回用户进程
-卡了2次地方，调试了3个小时，
-在fork.c中的pgfault一个是给权限给错了，给成了PTE_COW
-在duppage中的uvpt写成了uvpd
-###exercise12解答
+让我们总体来分析一下调用的过程，set_pgfault_handler(handler)->sys_env_set_pgfault_upcall()->注册用户页错误处理函数->如果发生页错误,在trap.c中的page_fault_handler()进行处理->_pgfault_upcall()调用页错误处理函数并返回用户进程
+这里我卡了2个地方，调试了将近3个小时，主要还是自己对这个机制的本质不是特别了解，首先是
+```
+
+```
+在pagefault的errcode这里我一直没有过这样的一个检查，最后发现是在在duppage对于页表权限的检查上，我将uvpt写成了uvpd，变成了对页目录的检查了，导致了我至少2个小时纠结在此处，主要是这个错误并不明显，而且是因为之前我在pgfault写顺手了。这里还是自己对于程序的注释不够注意，这里明明只是对页表的COW方式的复制，所以不会关页目录的事情。
+<br />
+随后我发现我又出bug了，真是怒了
+```
+```
+还好这一次我比较快的发现了错误在pgfault中的sys_page_map时我把权限给错了，应该为PTE_W，我给成了PTE_COW。总之还是要深入了解，反复查证程序。
 exercise 13
 ----------------------------
 ```
@@ -741,7 +747,7 @@ sys_ipc_try_send:
 
 ```
 
-sys_ipc_recv
+sys_ipc_recv:
 ```
 	// LAB 4: Your code here.
 	if (((uint32_t)dstva < UTOP) && ROUNDDOWN(dstva , PGSIZE) != dstva)  return -E_INVAL;
@@ -752,10 +758,8 @@ sys_ipc_recv
 	sched_yield ();
     	return 0;
 ```
-int32_t
-ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
-{
-	// LAB 4: Your code here.
+ipc_recv:
+```
 	if (from_env_store) *from_env_store = 0;
         if (perm_store) *perm_store = 0;
         if (!pg) pg = (void*) -1;
@@ -766,9 +770,7 @@ ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
         if (perm_store)
                 *perm_store = thisenv->env_ipc_perm;
         return thisenv->env_ipc_value;
-	//panic("ipc_recv not implemented");
-	//return 0;
-}
+```
 
 
 
