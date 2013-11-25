@@ -191,11 +191,13 @@ Question
 In your implementation of env_run() you should have called lcr3(). Before and after the call to lcr3(), your code makes references (at least it should) to the variable e, the argument to env_run. Upon loading the %cr3 register, the addressing context used by the MMU is instantly changed. But a virtual address (namely e) has meaning relative to a given address context--the address context specifies the physical address to which the virtual address maps. Why can the pointer e be dereferenced both before and after the addressing switch?
 
 ```
+由于我们在每个Env做了对于已物理地址的映射，所以无论切换到哪个进程我们的虚拟地址到物理地址的映射都不会出错。
 
 ```
 Whenever the kernel switches from one environment to another, it must ensure the old environment's registers are saved so they can be restored properly later. Why? Where does this happen?
 
 ```
+因为之后cpu要进行环境的恢复，如果不保存好的话，之后对于该进程的恢复会产生问题。
 exercise 7
 ———
 ```
@@ -308,43 +310,132 @@ Part B: Copy-on-Write Fork
 exercise 8
 ———
 ```
+Implement the sys_env_set_pgfault_upcall system call. Be sure to enable permission checking when looking up the environment ID of the target environment, since this is a "dangerous" system call.
 ```
-###exercise3解答
+###exercise8解答
+```
+	struct Env *e; 
+	int r = envid2env(envid, &e, 1);
+	if (r < 0) return r; //-E_BAD_ENV;   
+	e->env_pgfault_upcall = func;
+	cprintf("sys %d\n", e->env_tf.tf_err);
+	return 0;
+```
+在这里的按照注释进行对于进程的page_upcall的处理程序进行编写即可，这里的作用是用户进程调用系统调用告知系统我的page fault的处理程序。
 exercise 9
 ———
 ```
+Implement the code in page_fault_handler in kern/trap.c required to dispatch page faults to the user-mode handler. Be sure to take appropriate precautions when writing into the exception stack. (What happens if the user environment runs out of space on the exception stack?)
 ```
-###exercise3解答
+###exercise9解答
+```
+ if (curenv->env_pgfault_upcall) {
+//		cprintf("!!entry\n");
+		struct UTrapframe *uetf;
+		uint32_t add;
+		if (tf->tf_esp >= UXSTACKTOP - PGSIZE && tf->tf_esp < UXSTACKTOP) {
+			add = tf->tf_esp - sizeof(struct UTrapframe) - 4;
+		} else {
+			add = UXSTACKTOP - sizeof(struct UTrapframe);
+		}
+		uetf = (struct UTrapframe *) add;
+		user_mem_assert(curenv, (void*)add, sizeof(struct UTrapframe), PTE_U | PTE_W);
+		uetf->utf_eflags = tf->tf_eflags;
+		uetf->utf_eip = tf->tf_eip;
+		uetf->utf_err = tf->tf_err;
+//		cprintf("%d\n", uetf->utf_err);
+		uetf->utf_fault_va = fault_va;
+		uetf->utf_regs = tf->tf_regs;
+		uetf->utf_esp = tf->tf_esp;
+		curenv->env_tf.tf_eip = (uint32_t)curenv->env_pgfault_upcall;
+//		cprintf("~~");
+		curenv->env_tf.tf_esp = add;
+//		cprintf("!!");
+		env_run(curenv);
+
+	}
+
+```
+这里是如果是user差生的page fault的话我们切换到的栈为UTrapframe，而这么做更高效的原因是由于因为是进程内的pgfault，所以进程中的很多环境都不会变化，所以做到了更为高效。这里需要注意的是如果是递归调用的话，它需要多空出一个32 bit的空间以来实现在excepion stack中的递归调用。
 exercise 10
 ———
 ```
+ Implement the _pgfault_upcall routine in lib/pfentry.S. The interesting part is returning to the original point in the user code that caused the page fault. You'll return directly there, without going back through the kernel. The hard part is simultaneously switching stacks and re-loading the EIP.
 ```
-###exercise3解答
+###exercise10解答
+```
+	movl 0x30(%esp), %eax
+	subl $0x4, %eax
+	movl %eax, 0x30(%esp)
+	movl 0x28(%esp), %ebx
+	movl %ebx, (%eax)
+
+	// Restore the trap-time registers.  After you do this, you
+	// can no longer modify any general-purpose registers.
+	// LAB 4: Your code here.
+	addl $0x8 , %esp
+	popal
+
+	// Restore eflags from the stack.  After you do this, you can
+	// no longer use arithmetic operations or anything else that
+	// modifies eflags.
+	// LAB 4: Your code here.
+	addl $0x4, %esp
+	popfl
+
+	// Switch back to the adjusted trap-time stack.
+	// LAB 4: Your code here.
+	popl %esp
+
+	// Return to re-execute the instruction that faulted.
+	// LAB 4: Your code here.
+	ret
+```
+这里非常感谢张弛的报告，他的报告非常详细的介绍了这段转换的每一步的作用而这样做的原因。首先
 exercise 11
 ———
 ```
+Finish set_pgfault_handler() in lib/pgfault.c.
 ```
-###exercise3解答
+###exercise11解答
+```
+	int r;
+	if (_pgfault_handler == 0) {
+		// First time through!
+		// LAB 4: Your code here.
+		if ((r = sys_page_alloc(0, (void*) (UXSTACKTOP - PGSIZE), PTE_U | PTE_P | PTE_W)) < 0)
+			panic("set_pgfault_handler %d", r);
+		sys_env_set_pgfault_upcall(0, _pgfault_upcall);
+		
+
+	}
+
+	// Save handler pointer for assembly to call.
+	_pgfault_handler = handler;
+```
+这里的代码需要将对应的user的pgfault的处理函数进行注册，并且分配对应的exception stack的空间。按照注释来十分容易实现，只是要注意的是，栈空间是从高到低，所以在page分配的时候应该分配UXSTACKTOP - PGSIZE的地方以上的page给他，这个我一开始并没有注意。 <br />
+Make sure you understand why user/faultalloc and user/faultallocbad behave differently.这里lab问了这么一个问题，以我的理解为cprintf在调用cputs之前跳到了相应的地址导致page fault的引发，导致了之后user_mem检查的通过，而cputs由于没有做对应的Page fault所以检查对应地址的时候会发生失败。
+
 exercise 12
 ———
 ```
 ```
-###exercise3解答
+###exercise12解答
 exercise 13
 ———
 ```
 ```
-###exercise3解答
+###exercise13解答
 exercise 14
 ———
 ```
 ```
-###exercise3解答
+###exercise14解答
 exercise 15
 ———
 ```
 ```
-###exercise3解答
+###exercise15解答
 
 
  
