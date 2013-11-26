@@ -1,0 +1,16 @@
+./kbdreg.h
+./stab.h
+./stdarg.h
+./types.h
+./error.h
+./assert.h
+./string.h
+./trap.h
+./elf.h
+./mmu.h
+./x86.h
+./env.h
+./syscall.h
+./memlayout.h
+./stdio.h
+./lib.h

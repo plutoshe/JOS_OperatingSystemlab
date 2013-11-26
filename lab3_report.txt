@@ -1,0 +1,2 @@
+在lab下的README.md
+也可以参见https://github.com/plutoshe/JOS_OperatingSystemlab/tree/master/lab3
