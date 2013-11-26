@@ -429,7 +429,7 @@ Implement the sys_env_set_pgfault_upcall system call. Be sure to enable permissi
 ```
 	struct Env *e; 
 	int r = envid2env(envid, &e, 1);
-	if (r < 0) return r; //-E_BAD_ENV;   
+	if (r < 0) return r; //-E_BAD_ENV;
 	e->env_pgfault_upcall = func;
 	cprintf("sys %d\n", e->env_tf.tf_err);
 	return 0;
@@ -645,14 +645,15 @@ set_pgfault_handler(pgfault);
 让我们总体来分析一下调用的过程，set_pgfault_handler(handler)->sys_env_set_pgfault_upcall()->注册用户页错误处理函数->如果发生页错误,在trap.c中的page_fault_handler()进行处理->_pgfault_upcall()调用页错误处理函数并返回用户进程
 这里我卡了2个地方，调试了将近3个小时，主要还是自己对这个机制的本质不是特别了解，首先是
 ```
-
+[00001000] user panic in <unknown> at lib/fork.c:31: FEC_WR fault access check failed
 ```
-在pagefault的errcode这里我一直没有过这样的一个检查，最后发现是在在duppage对于页表权限的检查上，我将uvpt写成了uvpd，变成了对页目录的检查了，导致了我至少2个小时纠结在此处，主要是这个错误并不明显，而且是因为之前我在pgfault写顺手了。这里还是自己对于程序的注释不够注意，这里明明只是对页表的COW方式的复制，所以不会关页目录的事情。
+在pagefault的errcode这里我一直没有过这样的一个检查，这里我纠结了很久，在各处都输出各个时候的err来看，不断追根溯源，到了最后发现是在在duppage对于页表权限的检查上，我将uvpt写成了uvpd，变成了对页目录的检查了，导致了我至少2个小时纠结在此处，主要是这个错误并不明显，而且是因为之前我在pgfault写顺手了。这里还是自己对于程序的注释不够注意，这里明明只是对页表的COW方式的复制，所以不会关页目录的事情。
 <br />
 随后我发现我又出bug了，真是怒了
 ```
+[00001000] user_mem_check assertion failure for va eebfefc8
 ```
-还好这一次我比较快的发现了错误在pgfault中的sys_page_map时我把权限给错了，应该为PTE_W，我给成了PTE_COW。总之还是要深入了解，反复查证程序。
+还好这一次我比较快的发现了错误在pgfault中的sys_page_map和sys_page_alloc时我把权限给错了，应该为PTE_W，我给成了PTE_COW。总之还是要深入了解，反复查证程序。
 exercise 13
 ----------------------------
 ```
@@ -686,7 +687,7 @@ trap.c进行映射：
 需要注意的是在env_alloc的时候需要将eflages的if位设为1，以便之后使用
 ```
 	e->env_tf.tf_eflags |= FL_IF；
-                                                          
+\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00 \00\00 \00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00 \00\00 \00\00\00\00\00\00
 ```
 exercise 14
 ----------------------------
