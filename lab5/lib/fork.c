@@ -73,6 +73,11 @@ duppage(envid_t envid, unsigned pn)
 int r;
 
 	// LAB 4: Your code here.
+	if (uvpt[pn] & PTE_SHARE) {
+		r = sys_page_map (0, (void*) (pn * PGSIZE), envid, (void*) (pn * PGSIZE), uvpt[pn] & PTE_SYSCALL);
+		if (r < 0) panic("duppage sys_page_map error : %e\n", r);
+	} 
+
 	if ((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)) {
 		r = sys_page_map(0, (void*) (pn * PGSIZE), envid, (void*) (pn * PGSIZE), PTE_U | PTE_P | PTE_COW);
 		if (r < 0) panic("map failed");

@@ -55,16 +55,14 @@ i386_init(void)
 	// Starting non-boot CPUs
 	lock_kernel();
 	boot_aps();
-<<<<<<< HEAD
 
 	// Start fs.
 	ENV_CREATE(fs_fs, ENV_TYPE_FS);
 
-=======
 /*=======
 >>>>>>> lab3
 */
->>>>>>> lab4
+/*>>>>>>> lab4
 #if defined(TEST)
 	// Don't touch -- used by grading script!
 	ENV_CREATE(TEST, ENV_TYPE_USER);
@@ -79,8 +77,7 @@ i386_init(void)
 //	ENV_CREATE(user_yield, ENV_TYPE_USER);
 //	ENV_CREATE(user_primes, ENV_TYPE_USER);
 //	ENV_CREATE(user_primes, ENV_TYPE_USER);
->>>>>>> lab4
-#endif // TEST*
+>>>>>>> lab4*/
 
 	// Should not be necessary - drains keyboard because interrupt has given up.
 	kbd_intr();
