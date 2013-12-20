@@ -478,7 +478,7 @@ int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
 	// Fill this function in
-	pte_t* now = pgdir_walk(pgdir, va, 0);
+	pte_t* now = pgdir_walk(pgdir, va, true);
 	if ((now != NULL) && (*now & PTE_P)) {
 		//cprintf("!");
 //		PageInfo* now_page = (PageInfo*) pa2page(PTE_ADDR(now) + PGOFF(va));

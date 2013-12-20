@@ -27,6 +27,7 @@ pgfault(struct UTrapframe *utf)
 //	cprintf("err %d %d\n", err, err & FEC_WR);
 //				cprintf("%d %d %d\n",addr, ((uint32_t)addr) / PGSIZE, uvpt[((uint32_t)addr) / PGSIZE] & PTE_COW);//uvpd[PDX(addr)] & PTE_P);
 //				cprintf("%d %d\n",((uint32_t)977917*PGSIZE) / PGSIZE, uvpt[977917] & PTE_COW);//uvpd[PDX(addr)] & PTE_P);
+//	cprintf("in user's pgfault");
 	if (!(err & FEC_WR)) {
 		panic("FEC_WR fault access check failed");
 	}
@@ -35,7 +36,7 @@ pgfault(struct UTrapframe *utf)
 		panic("fault access check failed");
 	}
 
-
+	
 	// Allocate a new page, map it at a temporary location (PFTEMP),
 	// copy the data from the old page to the new page, then move the new
 	// page to the old page's address.
@@ -70,15 +71,14 @@ duppage(envid_t envid, unsigned pn)
 {
 	if (pn * PGSIZE == UXSTACKTOP - PGSIZE) return 0;
 
-int r;
+	int r;
 
 	// LAB 4: Your code here.
 	if (uvpt[pn] & PTE_SHARE) {
 		r = sys_page_map (0, (void*) (pn * PGSIZE), envid, (void*) (pn * PGSIZE), uvpt[pn] & PTE_SYSCALL);
 		if (r < 0) panic("duppage sys_page_map error : %e\n", r);
 	} 
-
-	if ((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)) {
+	else if ((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)) {
 		r = sys_page_map(0, (void*) (pn * PGSIZE), envid, (void*) (pn * PGSIZE), PTE_U | PTE_P | PTE_COW);
 		if (r < 0) panic("map failed");
 		r = sys_page_map(0, (void*) (pn * PGSIZE), 0, (void*) (pn * PGSIZE), PTE_U | PTE_P | PTE_COW);
@@ -113,6 +113,7 @@ fork(void)
 {
 	// LAB 4: our code here.
 //	static int pri = 10000;
+	cprintf("fork start\n");
 	set_pgfault_handler(pgfault);
 	int envid = sys_exofork();
 	if (envid < 0) {
@@ -128,7 +129,7 @@ fork(void)
 		uint32_t i;
 		for (i = 0; i != UTOP; i += PGSIZE)
 			if ((uvpd[PDX(i)] & PTE_P) && (uvpt[i / PGSIZE] & PTE_P) && (uvpt[i / PGSIZE] & PTE_U)) {
-				cprintf("%d\n", uvpd[PDX(i)] & PTE_P);
+				//cprintf("%d\n", uvpd[PDX(i)] & PTE_P);
 	 			duppage(envid, i / PGSIZE);
 	 		}
 //		cprintf("father1\n");

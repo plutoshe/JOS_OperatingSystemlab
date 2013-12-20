@@ -263,7 +263,8 @@ trap_dispatch(struct Trapframe *tf)
 		panic("unhandled trap in kernel");
 	else 
 		env_destroy(curenv);*/
-	if (tf ->tf_trapno == IRQ_OFFSET + IRQ_TIMER) {
+	//cprintf("%d", tf->tf_trapno);
+	if (tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER) {
 		lapic_eoi();
 		sched_yield();
 		return;
@@ -277,6 +278,7 @@ trap_dispatch(struct Trapframe *tf)
 		return;
 	}
 
+	//cprintf("!!");
 	// Unexpected trap: The user process or the kernel has a bug.
 //	if (tf->tf_trapno == 14) 
 //		page_fault_handler(tf);
@@ -380,7 +382,7 @@ page_fault_handler(struct Trapframe *tf)
 	fault_va = rcr2();
 
 	// Handle kernel-mode page faults.
-	cprintf("PAGE FUALT\n");
+//	cprintf("PAGE FUALT\n");
 
 	// LAB 3: Your code here.
 	if ((tf->tf_cs & 3) == 0)
@@ -441,6 +443,7 @@ page_fault_handler(struct Trapframe *tf)
 //		cprintf("~~");
 		curenv->env_tf.tf_esp = add;
 //		cprintf("!!");
+//		cprintf("Through UTrapFrame!\n");
 		env_run(curenv);
 
 	}

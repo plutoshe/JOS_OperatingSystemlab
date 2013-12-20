@@ -91,8 +91,7 @@ spawn(const char *prog, const char **argv)
 
 	// Read elf header
 	elf = (struct Elf*) elf_buf;
-	if (readn(fd, elf_buf, sizeof(elf_buf)) != sizeof(elf_buf)
-	    || elf->e_magic != ELF_MAGIC) {
+	if (readn(fd, elf_buf, sizeof(elf_buf)) != sizeof(elf_buf) || elf->e_magic != ELF_MAGIC) {
 		close(fd);
 		cprintf("elf magic %08x want %08x\n", elf->e_magic, ELF_MAGIC);
 		return -E_NOT_EXEC;
@@ -153,7 +152,9 @@ spawnl(const char *prog, const char *arg0, ...)
 	// The contract of the function guarantees that the last
 	// argument will always be NULL, and that none of the other
 	// arguments will be NULL.
-	int argc=0;
+
+    cprintf("######\n");
+    int argc=0;
 	va_list vl;
 	va_start(vl, arg0);
 	while(va_arg(vl, void *) != NULL)
@@ -247,6 +248,7 @@ init_stack(envid_t child, const char **argv, uintptr_t *init_esp)
 
 	// After completing the stack, map it into the child's address space
 	// and unmap it from ours!
+	//cprintf("!!!\n");
 	if ((r = sys_page_map(0, UTEMP, child, (void*) (USTACKTOP - PGSIZE), PTE_P | PTE_U | PTE_W)) < 0)
 		goto error;
 	if ((r = sys_page_unmap(0, UTEMP)) < 0)
@@ -309,6 +311,5 @@ copy_shared_pages(envid_t child)
 			if (r < 0) return r;
 		}
 	return 0;
-
 }
 

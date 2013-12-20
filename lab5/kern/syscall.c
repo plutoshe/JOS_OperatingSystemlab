@@ -138,10 +138,10 @@ sys_env_set_trapframe(envid_t envid, struct Trapframe *tf)
 	// address!
 	struct Env *e;
 	int r = envid2env(envid, &e, 1);
-	if (r < 0) return r;
+	if (r < 0) return -E_BAD_ENV;
 	user_mem_assert(e, tf, sizeof(struct Trapframe), PTE_U);
 	e->env_tf = *tf;
-	e->env_tf.tf_cs = GD_UT | 3;
+	e->env_tf.tf_cs |= 3;
 	e->env_tf.tf_eflags |= FL_IF;
 
 	return 0;
@@ -164,7 +164,7 @@ sys_env_set_pgfault_upcall(envid_t envid, void *func)
 	int r = envid2env(envid, &e, 1);
 	if (r < 0) return r; //-E_BAD_ENV;   
 	e->env_pgfault_upcall = func;
-	cprintf("sys %d\n", e->env_tf.tf_err);
+//	cprintf("sys %d\n", e->env_tf.tf_err);
 	return 0;
 //	panic("sys_env_set_pgfault_upcall not implemented");
 }
@@ -360,6 +360,7 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
         e->env_ipc_value = value; 
         e->env_status = ENV_RUNNABLE;
         e->env_tf.tf_regs.reg_eax = 0;
+//		cprintf("----!1-----\n");
         return 0;
 	//panic("sys_ipc_try_send not implemented");
 }
@@ -385,6 +386,7 @@ sys_ipc_recv(void *dstva)
     curenv->env_ipc_dstva = dstva;
 	curenv->env_ipc_from = 0;
 	sched_yield ();
+//	cprintf("----!2-----\n");
     return 0;
 	//panic("sys_ipc_recv not implemented");
 	//return 0;
@@ -399,7 +401,7 @@ static void sys_change_priority(envid_t envid, int p) {
 		return;
 	}
 	e->priority = p;
-	cprintf("%d", envs[envid].priority);
+	//cprintf("%d", envs[envid].priority);
 	return;
 }
 // Dispatches to the correct kernel function, passing the arguments.
