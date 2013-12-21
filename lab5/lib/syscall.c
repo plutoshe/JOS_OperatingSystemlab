@@ -128,4 +128,21 @@ sys_exec(uint32_t eip , uint32_t esp , void * v_ph , uint32_t phnum)
 	return syscall(SYS_exec, 1, eip, esp, (uint32_t) v_ph, phnum, 0);
 	
 }
-
+/*
+int 
+sys_raid2_init(void) 
+{
+	return syscall(SYS_raid2_init, 0, 0, 0, 0, 0, 0);
+}
+int sys_raid2_add(int num, int* a) 
+{
+	return syscall(SYS_raid2_add, 0, num, (uint32_t) a, 0, 0, 0);
+}
+int sys_raid2_change(int isdisk, int num, int change) 
+{
+	return syscall(SYS_raid2_change, 0, isdisk, num, change, 0, 0);
+}
+int sys_raid2_check(void) 
+{
+	return syscall(SYS_raid2_check, 0, 0, 0, 0, 0, 0);
+}*/

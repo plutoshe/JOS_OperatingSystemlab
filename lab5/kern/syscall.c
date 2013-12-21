@@ -441,19 +441,145 @@ static void sys_change_priority(envid_t envid, int p) {
 	//cprintf("%d", envs[envid].priority);
 	return;
 }
+/*
+struct My_Disk {
+	struct My_Disk* next;
+	uint32_t data;
+	int now;
+	bool dirty;
+};
+struct My_Disk* user_raid2_disk[7];
+struct My_Disk* origin_raid2_disk[7];
+struct My_Disk* raid2_disks;
+int nraid2_disks = 199 ;
+int now_raid2_disk = 0;
+int now_raid2_add = 0 ;
+int nn_add[7] = {0,0,4,0,5,6,2};
+#define URAID 0x00600000
 
-static void sys_raid2_init
-
-static void sys_raid2_add(int num, int* a) {
-
+static void disk_alloc() {
+	int i;
+	for (i = 0; i < 7; i++, now_raid2_disk++) {
+		user_raid2_disk[i]->next = &raid2_disks[now_raid2_disk];
+		user_raid2_disk[i] = &raid2_disks[now_raid2_disk];
+		user_raid2_disk[i]->next = NULL;
+		user_raid2_disk[i]->data = 0;
+		user_raid2_disk[i]->now = 0;
+		user_raid2_disk[i]->dirty = false;
+	}
+	return;
 }
 
-static void sys_raid2_change() {
+static void Hamming(int now, int alloc) {
+//	int now = user_raid2_disk[2]->now;
+	user_raid2_disk[0]->data |= (user_raid2_disk[2]->data ^ user_raid2_disk[4]->data ^ user_raid2_disk[6]->data) & (1 << now);
+	user_raid2_disk[1]->data |= (user_raid2_disk[2]->data ^ user_raid2_disk[5]->data ^ user_raid2_disk[6]->data) & (1 << now);
+	user_raid2_disk[3]->data |= (user_raid2_disk[5]->data ^ user_raid2_disk[4]->data ^ user_raid2_disk[6]->data) & (1 << now);
+	if (alloc && user_raid2_disk[6]->now == 32) {
+		disk_alloc();
+	}
 }
+
+static void sys_raid2_init() {
+	int i;
+	for (i = 0; i < 7; i++, now_raid2_disk++) {
+		user_raid2_disk[i] = &raid2_disks[now_raid2_disk];
+		origin_raid2_disk[i] = &raid2_disks[now_raid2_disk];
+		user_raid2_disk[i]->next = NULL;
+		user_raid2_disk[i]->data = 0;
+		user_raid2_disk[i]->now = 0;
+		user_raid2_disk[i]->dirty = false;
+	}
+	now_raid2_add = 2;
+	return;
+}
+
+static void sys_raid2_add(int num, uint32_t* a) {
+	int l = num / 32 + 1;
+	if (num == 0) return;
+	int i, j;
+	for (i = 0; i < l; i++) {
+		for (j = 0; j < 32; j++) {
+			int tmp = (a[i] & (1 << j))? 1 : 0;
+			user_raid2_disk[now_raid2_add]->data |= 1 << (user_raid2_disk[now_raid2_add]->now++);
+			now_raid2_add = nn_add[now_raid2_add];
+			if (num == 0) {
+				Hamming(user_raid2_disk[2]->now, 1);
+				break;
+			}
+			if (now_raid2_add == 2) {
+				Hamming(user_raid2_disk[2]->now, 1);
+			}
+		}
+	}
+}
+
+static void sys_raid2_change(int is_disk, int num, int change) {
+	if (is_disk) {
+		raid2_disks[num].dirty = true;
+		raid2_disks[num].data = change;
+		return;
+	}
+	struct My_Disk* tmp_disk[7];
+
+	int i;
+	for (i = 0; i < 7; i++) 
+		tmp_disk[i] = origin_raid2_disk[i];
+	for (;num > 32 * 4;) {
+		num -= 32 * 4;
+		for (i = 0; i < 7; i++)
+			tmp_disk[i] = tmp_disk[i]->next;
+	}
+	//int a = 
+}
+
+
+struct My_Disk* tmp_disk[7];
 
 static void sys_raid2_check() { 
-}
+	cprintf("check check");
+	int sum_d = 0;
+	int i;
+	for (i = 0; i < 7; i++) {
+		tmp_disk[i] = origin_raid2_disk[i];
+		if (tmp_disk[i]->dirty) sum_d++;
+	}
+	int now_num = 0;
+	for (;tmp_disk[0] != NULL;) {
+		uint32_t a1 = (tmp_disk[2]->data ^ tmp_disk[4]->data ^ tmp_disk[6]->data);
+		uint32_t a2 = (tmp_disk[2]->data ^ tmp_disk[5]->data ^ tmp_disk[6]->data);
+		uint32_t a3 = (tmp_disk[5]->data ^ tmp_disk[4]->data ^ tmp_disk[6]->data);
+		for (i = 0; i < 32; i++) {
+			int b1 = 0, b2 = 0, b3 = 0;
+			if ((tmp_disk[0]->data ^ a1) & (1 << i)) {
+				b1 = 1;
+			}
+			if ((tmp_disk[1]->data ^ a2) & (1 << i)) {
+				b2 = 2;
+			}
+			if ((tmp_disk[3]->data ^ a3) & (1 << i)) {
+				b3 = 4;
+			}
+			int st = b1 + b2 + b3 - 1;
+			if (sum_d > 2 || !tmp_disk[st]->dirty) {
+				cprintf("%d round disk %d bit cannot repair\n", now_num, i);
+			} else {
+				cprintf("%d round disk %d bit repair\n", now_num, i);
+				tmp_disk[st]->data ^= (1 << i);
+			}
+		}
+		
+//		check_raid2_disk();
+		sum_d = 0;
+		for (i = 0; i < 7; i++) {
+			tmp_disk[i] = tmp_disk[i]->next;
+			if (tmp_disk[i]->dirty) sum_d++;
+		}
+		now_num++;
+	}
 
+}
+*/
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -506,7 +632,18 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		case SYS_env_set_trapframe : 
 			return sys_env_set_trapframe((envid_t) a1, (struct Trapframe*) a2);
 			goto _success_invoke;
-
+/*		case SYS_raid2_init :
+			sys_raid2_init();
+			goto _success_invoke;
+		case SYS_raid2_add :
+			sys_raid2_add(a1, (uint32_t*) a2);
+			goto _success_invoke;
+		case SYS_raid2_change :
+			sys_raid2_change(a1, a2, a3);
+			goto _success_invoke;
+		case SYS_raid2_check :
+			sys_raid2_check();
+			goto _success_invoke;*/
 		case SYS_exec : 
 			return sys_exec((uint32_t) a1 , (uint32_t) a2 , (void *) a3 , (uint32_t) a4);
 		default :

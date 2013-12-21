@@ -15,6 +15,7 @@
 size_t npages;			// Amount of physical memory (in pages)
 static size_t npages_basemem;	// Amount of base memory (in pages)
 
+
 // These variables are set in mem_init()
 pde_t *kern_pgdir;		// Kernel's initial page directory
 struct PageInfo *pages;		// Physical page state array
@@ -160,6 +161,7 @@ mem_init(void)
 	// LAB 3: Your code here.
 	envs = (struct Env*) boot_alloc(NENV * sizeof(struct Env));
 
+	//raid2_disks = (struct My_Disk*) boot_alloc(nraid2_disks * sizeof(struct My_Disk));
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
@@ -194,6 +196,8 @@ mem_init(void)
 	//    - envs itself -- kernel RW, user NONE
 	// LAB 3: Your code here.
 	boot_map_region(kern_pgdir, UENVS, ROUNDUP(NENV * sizeof(struct Env), PGSIZE), PADDR(envs), PTE_U | PTE_P);
+
+//	boot_map_region(kern_pgdir, URAID, ROUNDUP(nraid2_disks * sizeof(struct My_Disk), PGSIZE), PADDR(raid2_disks), PTE_U | PTE_P);
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel

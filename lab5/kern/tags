@@ -81,6 +81,7 @@ Eipdebuginfo::eip_fn_namelen	kdebug.h	/^	int eip_fn_namelen;		\/\/ Length of fun
 Eipdebuginfo::eip_fn_narg	kdebug.h	/^	int eip_fn_narg;		\/\/ Number of function arguments$/;"	m	struct:Eipdebuginfo	access:public
 Eipdebuginfo::eip_line	kdebug.h	/^	int eip_line;			\/\/ Source code linenumber for EIP$/;"	m	struct:Eipdebuginfo	access:public
 FIXED	lapic.c	31;"	d	file:
+Hamming	syscall.c	/^static void Hamming(int now, int alloc) {$/;"	f	file:	signature:(int now, int alloc)
 ICRHI	lapic.c	32;"	d	file:
 ICRLO	lapic.c	21;"	d	file:
 ID	lapic.c	14;"	d	file:
@@ -126,7 +127,8 @@ MYHANDLER_NOEC	trapentry.S	/^#define MYHANDLER_NOEC(name, num)					\\$/;"	d
 MYHANDLER_NULL	trapentry.S	/^#define MYHANDLER_NULL() \\$/;"	d
 MYTEMPLATE	syscall.c	15;"	d	file:
 My_Disk	pmap.h	/^struct My_Disk {$/;"	s
-My_Disk::entry	pmap.h	/^	uint32_t entry;$/;"	m	struct:My_Disk	access:public
+My_Disk::data	pmap.h	/^	uint32_t data;$/;"	m	struct:My_Disk	access:public
+My_Disk::dirty	pmap.h	/^	bool dirty;$/;"	m	struct:My_Disk	access:public
 My_Disk::next	pmap.h	/^	struct My_Disk* next;$/;"	m	struct:My_Disk	typeref:struct:My_Disk::My_Disk	access:public
 My_Disk::now	pmap.h	/^	int now;$/;"	m	struct:My_Disk	access:public
 NCOMMANDS	monitor.c	48;"	d	file:
@@ -159,6 +161,7 @@ TIMER	lapic.c	33;"	d	file:
 TPR	lapic.c	16;"	d	file:
 TRAPHANDLER	trapentry.S	/^#define TRAPHANDLER(name, num)						\\$/;"	d
 TRAPHANDLER_NOEC	trapentry.S	/^#define TRAPHANDLER_NOEC(name, num)					\\$/;"	d
+URAID	pmap.h	107;"	d
 UserStabData	kdebug.c	/^struct UserStabData {$/;"	s	file:
 UserStabData::stab_end	kdebug.c	/^	const struct Stab *stab_end;$/;"	m	struct:UserStabData	typeref:struct:UserStabData::Stab	file:	access:public
 UserStabData::stabs	kdebug.c	/^	const struct Stab *stabs;$/;"	m	struct:UserStabData	typeref:struct:UserStabData::Stab	file:	access:public
@@ -233,11 +236,14 @@ crt_buf	console.c	/^static uint16_t *crt_buf;$/;"	v	file:
 crt_pos	console.c	/^static uint16_t crt_pos;$/;"	v	file:
 ctlmap	console.c	/^static uint8_t ctlmap[256] =$/;"	v	file:
 curenv	env.h	10;"	d
+data	pmap.h	/^	uint32_t data;$/;"	m	struct:My_Disk	access:public
 debuginfo_eip	kdebug.c	/^debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)$/;"	f	signature:(uintptr_t addr, struct Eipdebuginfo *info)
 debuginfo_eip	kdebug.h	/^int debuginfo_eip(uintptr_t eip, struct Eipdebuginfo *info);$/;"	p	signature:(uintptr_t eip, struct Eipdebuginfo *info)
 delay	console.c	/^delay(void)$/;"	f	file:	signature:(void)
 desc	monitor.c	/^	const char *desc;$/;"	m	struct:Command	file:	access:public
 didinit	picirq.c	/^static bool didinit;$/;"	v	file:
+dirty	pmap.h	/^	bool dirty;$/;"	m	struct:My_Disk	access:public
+disk_alloc	syscall.c	/^static void disk_alloc() {$/;"	f	file:
 eip_file	kdebug.h	/^	const char *eip_file;		\/\/ Source code filename for EIP$/;"	m	struct:Eipdebuginfo	access:public
 eip_fn_addr	kdebug.h	/^	uintptr_t eip_fn_addr;		\/\/ Address of start of function$/;"	m	struct:Eipdebuginfo	access:public
 eip_fn_name	kdebug.h	/^	const char *eip_fn_name;	\/\/ Name of function containing EIP$/;"	m	struct:Eipdebuginfo	access:public
@@ -247,7 +253,6 @@ eip_line	kdebug.h	/^	int eip_line;			\/\/ Source code linenumber for EIP$/;"	m	s
 entries	mpconfig.c	/^	uint8_t entries[0];             \/\/ table entries$/;"	m	struct:mpconf	file:	access:public
 entry	entry.S	/^entry:$/;"	l
 entry	mpconfig.c	/^	uint16_t entry;                 \/\/ entry count$/;"	m	struct:mpconf	file:	access:public
-entry	pmap.h	/^	uint32_t entry;$/;"	m	struct:My_Disk	access:public
 entry_pgdir	entrypgdir.c	/^pde_t entry_pgdir[NPDENTRIES] = {$/;"	v
 entry_pgtable	entrypgdir.c	/^pte_t entry_pgtable[NPTENTRIES] = {$/;"	v
 entry_pgtable	entrypgdir.c	/^pte_t entry_pgtable[NPTENTRIES];$/;"	v
@@ -396,13 +401,18 @@ name	trapentry.S	/^	name:								\\$/;"	l
 name	trapentry.S	/^	name:			\/* function starts here *\/		\\$/;"	l
 ncpu	mpconfig.c	/^int ncpu;$/;"	v
 next	pmap.h	/^	struct My_Disk* next;$/;"	m	struct:My_Disk	typeref:struct:My_Disk::My_Disk	access:public
+nn_add	pmap.h	/^static int nn_add[7] = {0, 0, 4, 0, 5, 6, 2};$/;"	v
 normalmap	console.c	/^static uint8_t normalmap[256] =$/;"	v	file:
 now	pmap.h	/^	int now;$/;"	m	struct:My_Disk	access:public
+now_raid2_add	pmap.h	/^static int now_raid2_add = 0;$/;"	v
+now_raid2_disk	pmap.h	/^static int now_raid2_disk = 0;$/;"	v
 npages	pmap.c	/^size_t npages;			\/\/ Amount of physical memory (in pages)$/;"	v
 npages_basemem	pmap.c	/^static size_t npages_basemem;	\/\/ Amount of base memory (in pages)$/;"	v	file:
+nraid2_disks	pmap.h	/^static int nraid2_disks = 100;$/;"	v
 nvram_read	pmap.c	/^nvram_read(int r)$/;"	f	file:	signature:(int r)
 oemlength	mpconfig.c	/^	uint16_t oemlength;             \/\/ OEM table length$/;"	m	struct:mpconf	file:	access:public
 oemtable	mpconfig.c	/^	physaddr_t oemtable;            \/\/ OEM table pointer$/;"	m	struct:mpconf	file:	access:public
+origin_raid2_disk	pmap.h	/^static struct My_Disk* origin_raid2_disk[7];$/;"	v	typeref:struct:My_Disk
 pa2page	pmap.h	/^pa2page(physaddr_t pa)$/;"	f	signature:(physaddr_t pa)
 page2kva	pmap.h	/^page2kva(struct PageInfo *pp)$/;"	f	signature:(struct PageInfo *pp)
 page2pa	pmap.h	/^page2pa(struct PageInfo *pp)$/;"	f	signature:(struct PageInfo *pp)
@@ -440,7 +450,7 @@ print_trapframe	trap.h	/^void print_trapframe(struct Trapframe *tf);$/;"	p	signa
 product	mpconfig.c	/^	uint8_t product[20];            \/\/ product id$/;"	m	struct:mpconf	file:	access:public
 putch	printf.c	/^putch(int ch, int *cnt)$/;"	f	file:	signature:(int ch, int *cnt)
 pxtoi	monitor.c	/^bool pxtoi(uint32_t *va, char *origin) {$/;"	f	signature:(uint32_t *va, char *origin)
-raid2_disk	pmap.h	/^static struct My_Disk raid2_disk[7];$/;"	v	typeref:struct:My_Disk
+raid2_disks	pmap.h	/^static struct My_Disk* raid2_disks;$/;"	v	typeref:struct:My_Disk
 region_alloc	env.c	/^region_alloc(struct Env *e, void *va, size_t len)$/;"	f	file:	signature:(struct Env *e, void *va, size_t len)
 relocated	entry.S	/^relocated:$/;"	l
 reserved	mpconfig.c	/^	uint8_t reserved;$/;"	m	struct:mpconf	file:	access:public
@@ -500,15 +510,17 @@ sys_ipc_try_send	syscall.c	/^sys_ipc_try_send(envid_t envid, uint32_t value, voi
 sys_page_alloc	syscall.c	/^sys_page_alloc(envid_t envid, void *va, int perm)$/;"	f	file:	signature:(envid_t envid, void *va, int perm)
 sys_page_map	syscall.c	/^sys_page_map(envid_t srcenvid, void *srcva,$/;"	f	file:	signature:(envid_t srcenvid, void *srcva, envid_t dstenvid, void *dstva, int perm)
 sys_page_unmap	syscall.c	/^sys_page_unmap(envid_t envid, void *va)$/;"	f	file:	signature:(envid_t envid, void *va)
-sys_raid2_add	syscall.c	/^static void sys_raid2_add(int num, int* a) {$/;"	f	file:	signature:(int num, int* a)
-sys_raid2_change	syscall.c	/^static void sys_raid2_change() {$/;"	f	file:
+sys_raid2_add	syscall.c	/^static void sys_raid2_add(int num, uint32_t* a) {$/;"	f	file:	signature:(int num, uint32_t* a)
+sys_raid2_change	syscall.c	/^static void sys_raid2_change(int is_disk, int num, int change) {$/;"	f	file:	signature:(int is_disk, int num, int change)
 sys_raid2_check	syscall.c	/^static void sys_raid2_check() { $/;"	f	file:
+sys_raid2_init	syscall.c	/^static void sys_raid2_init() {$/;"	f	file:
 sys_yield	syscall.c	/^sys_yield(void)$/;"	f	file:	signature:(void)
 syscall	syscall.c	/^syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)$/;"	f	signature:(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
 syscall	syscall.h	/^int32_t syscall(uint32_t num, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5);$/;"	p	signature:(uint32_t num, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
 thiscpu	cpu.h	38;"	d
 tlb_invalidate	pmap.c	/^tlb_invalidate(pde_t *pgdir, void *va)$/;"	f	signature:(pde_t *pgdir, void *va)
 tlb_invalidate	pmap.h	/^void	tlb_invalidate(pde_t *pgdir, void *va);$/;"	p	signature:(pde_t *pgdir, void *va)
+tmp_disk	syscall.c	/^struct My_Disk* tmp_disk[7];$/;"	v	typeref:struct:My_Disk
 togglecode	console.c	/^static uint8_t togglecode[256] =$/;"	v	file:
 trap	trap.c	/^trap(struct Trapframe *tf)$/;"	f	signature:(struct Trapframe *tf)
 trap_dispatch	trap.c	/^trap_dispatch(struct Trapframe *tf)$/;"	f	file:	signature:(struct Trapframe *tf)
@@ -526,6 +538,7 @@ user_mem_assert	pmap.h	/^void	user_mem_assert(struct Env *env, const void *va, s
 user_mem_check	pmap.c	/^user_mem_check(struct Env *env, const void *va, size_t len, int perm)$/;"	f	signature:(struct Env *env, const void *va, size_t len, int perm)
 user_mem_check	pmap.h	/^int	user_mem_check(struct Env *env, const void *va, size_t len, int perm);$/;"	p	signature:(struct Env *env, const void *va, size_t len, int perm)
 user_mem_check_addr	pmap.c	/^static uintptr_t user_mem_check_addr;$/;"	v	file:
+user_raid2_disk	pmap.h	/^static struct My_Disk* user_raid2_disk[7];$/;"	v	typeref:struct:My_Disk
 vcprintf	printf.c	/^vcprintf(const char *fmt, va_list ap)$/;"	f	signature:(const char *fmt, va_list ap)
 vectors	trapentry.S	/^vectors:$/;"	l
 version	mpconfig.c	/^	uint8_t version;                \/\/ [14]$/;"	m	struct:mpconf	file:	access:public
