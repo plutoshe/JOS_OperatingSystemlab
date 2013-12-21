@@ -18,6 +18,9 @@ extern size_t npages;
 extern pde_t *kern_pgdir;
 
 
+
+
+
 /* This macro takes a kernel virtual address -- an address that points above
  * KERNBASE, where the machine's maximum 256MB of physical memory is mapped --
  * and returns the corresponding physical address.  It panics if you pass it a
@@ -91,3 +94,17 @@ page2kva(struct PageInfo *pp)
 pte_t *pgdir_walk(pde_t *pgdir, const void *va, int create);
 
 #endif /* !JOS_KERN_PMAP_H */
+struct My_Disk {
+	bool dirty;
+	struct My_Disk* next;
+	int now;
+	int data;
+};
+int nraid2_disks;
+struct My_Disk* raid2_disks;
+struct My_Disk* origin_raid2_disk[7];
+struct My_Disk* user_raid2_disk[7];
+int now_raid2_add;
+ int now_raid2_disk;
+int nn_add[7]; 
+

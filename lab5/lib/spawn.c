@@ -5,7 +5,7 @@
 #define UTEMP2USTACK(addr)	((void*) (addr) + (USTACKTOP - PGSIZE) - UTEMP)
 #define UTEMP2			(UTEMP + PGSIZE)
 #define UTEMP3			(UTEMP2 + PGSIZE)
-#define MYTEMPLATE 0x80000000 
+#define DTEMP 0x80000000 
 // Helper functions for spawn.
 static int init_stack(envid_t child, const char **argv, uintptr_t *init_esp, int stack_addr);
 static int map_segment(envid_t child, uintptr_t va, size_t memsz,
@@ -111,7 +111,7 @@ spawn(const char *prog, const char **argv)
 		return r;
 
 	// Set up program segments as defined in ELF header.
-	ph = (struct Proghdr*) (elf_buf + elf->e_phoff);
+	ph = (struct Proghdr *) (elf_buf + elf->e_phoff);
 	for (i = 0; i < elf->e_phnum; i++, ph++) {
 		if (ph->p_type != ELF_PROG_LOAD)
 			continue;
@@ -259,31 +259,30 @@ exec(const char *prog, const char **argv)
 		return -E_NOT_EXEC;
 	}
 
-	uint32_t now_addr = MYTEMPLATE;
-	ph = (struct Proghdr *) (elf_buf + elf ->e_phoff);
-	for (i = 0; i < elf ->e_phnum; i++, ph++) {
-	if (ph ->p_type != ELF_PROG_LOAD)
-	continue ;
-	perm = PTE_P | PTE_U;
-	if (ph ->p_flags & ELF_PROG_FLAG_WRITE)
-	perm |= PTE_W;
-	if ((r = map_segment (0, PGOFF(ph ->p_va) + now_addr , ph ->p_memsz ,
-	fd , ph ->p_filesz , ph ->p_offset , perm)) < 0)
-	goto error;
-	now_addr += ROUNDUP(ph ->p_memsz + PGOFF(ph ->p_va), PGSIZE);
+	uint32_t now_addr = DTEMP;
+	ph = (struct Proghdr *) (elf_buf + elf->e_phoff);
+	for (i = 0; i < elf->e_phnum; i++, ph++) {
+		if (ph->p_type != ELF_PROG_LOAD)
+			continue ;
+		perm = PTE_P | PTE_U;
+		if (ph->p_flags & ELF_PROG_FLAG_WRITE)
+			perm |= PTE_W;
+		if ((r = map_segment(0, PGOFF(ph->p_va) + now_addr, ph->p_memsz, fd, ph->p_filesz, ph->p_offset, perm)) < 0)
+			goto error;
+		now_addr += ROUNDUP(ph->p_memsz + PGOFF(ph->p_va), PGSIZE);
 	}
 	close(fd);
 	fd = -1;
-	if ((r = init_stack (0, argv , &tf_esp , now_addr)) < 0)
-	return r;
-	if (sys_exec(elf->e_entry , tf_esp , (void *)(elf_buf + elf ->e_phoff), elf->e_phnum) < 0)
-	goto error;
+	if ((r = init_stack(0, argv, &tf_esp, now_addr)) < 0)
+		return r;
+	if (sys_exec(elf->e_entry , tf_esp , (void *)(elf_buf + elf->e_phoff), elf->e_phnum) < 0)
+		goto error;
 	return 0;
 
 
 error:
 	//sys_env_destroy(child);
-	sys_env_destroy (0);
+	sys_env_destroy(0);
 
 	close(fd);
 	return r;

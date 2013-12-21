@@ -1,17 +1,17 @@
-#include <inc/lib.h>
+/*#include <inc/lib.h>
 
 void
 umain(int argc, char **argv)
 {
-/*	int a[3];
+	int a[3];
 	sys_raid2_init();
 	a[0] = 1; a[1] = 2; a[2] = 3;
 	sys_raid2_add(3 * 32, a);
 	sys_raid2_change(1, 1, 4);
-	sys_raid2_check();*/
+	sys_raid2_check();
 	return;
-}
-/*// hello, world
+}*/
+// hello, world
 #include <inc/lib.h>
 
 void
@@ -66,4 +66,4 @@ umain(int argc, char **argv)
 
 
 }
-*/
+

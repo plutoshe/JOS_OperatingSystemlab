@@ -12,7 +12,7 @@
 #include <kern/syscall.h>
 #include <kern/console.h>
 #include <kern/sched.h>
-#define MYTEMPLATE 0x80000000 
+#define DTEMP 0x80000000 
 // Print a string to the system console.
 // The string is exactly 'len' characters long.
 // Destroys the environment on memory errors.
@@ -220,34 +220,34 @@ static int
 sys_exec(uint32_t eip , uint32_t esp , void * v_ph , uint32_t phnum)
 
 {
-	memset (( void *)(&curenv ->env_tf.tf_regs), 0, sizeof(struct PushRegs));
-	curenv ->env_tf.tf_eip = eip;
-	curenv ->env_tf.tf_esp = esp;
+	memset((void *)(&curenv->env_tf.tf_regs), 0, sizeof(struct PushRegs));
+	curenv->env_tf.tf_eip = eip;
+	curenv->env_tf.tf_esp = esp;
 	int perm , i;
-	uint32_t now_addr = MYTEMPLATE;
-	uint32_t va , end_addr;
-	struct PageInfo * pg;
-	struct Proghdr * ph = (struct Proghdr *) v_ph;
+	uint32_t now_addr = DTEMP;
+	uint32_t va, end_addr;
+	struct PageInfo* pg;
+	struct Proghdr* ph = (struct Proghdr *) v_ph;
 	for (i = 0; i < phnum; i++, ph++) {
-		if (ph ->p_type != ELF_PROG_LOAD)
+		if (ph->p_type != ELF_PROG_LOAD)
 			continue ;
 		perm = PTE_P | PTE_U;
-		if (ph ->p_flags & ELF_PROG_FLAG_WRITE)
-		perm |= PTE_W;
-		end_addr = ROUNDUP(ph ->p_va + ph ->p_memsz , PGSIZE);
-		for (va = ROUNDDOWN(ph ->p_va , PGSIZE); va != end_addr; now_addr += PGSIZE , va += PGSIZE) {
-			if ((pg = page_lookup(curenv ->env_pgdir , (void *) now_addr , NULL)) == NULL)
+		if (ph->p_flags & ELF_PROG_FLAG_WRITE)
+			perm |= PTE_W;
+		end_addr = ROUNDUP(ph->p_va + ph->p_memsz, PGSIZE);
+		for (va = ROUNDDOWN(ph->p_va, PGSIZE); va != end_addr; now_addr += PGSIZE , va += PGSIZE) {
+			if ((pg = page_lookup(curenv->env_pgdir, (void *)now_addr, NULL)) == NULL)
 				return -E_NO_MEM;
-			if (page_insert(curenv ->env_pgdir , pg , (void *)va , perm) < 0)
+			if (page_insert(curenv->env_pgdir, pg, (void *)va, perm) < 0)
 				return -E_NO_MEM;
-			page_remove(curenv ->env_pgdir , (void *) now_addr);
+			page_remove(curenv->env_pgdir, (void *) now_addr);
 		}
 	}
-	if ((pg = page_lookup(curenv ->env_pgdir , (void *) now_addr , NULL)) == NULL)
+	if ((pg = page_lookup(curenv->env_pgdir, (void *) now_addr, NULL)) == NULL)
 		return -E_NO_MEM;
-	if (page_insert(curenv ->env_pgdir , pg , (void *)(USTACKTOP - PGSIZE), PTE_P| PTE_U|PTE_W) < 0)
+	if (page_insert(curenv->env_pgdir, pg, (void *)(USTACKTOP - PGSIZE), PTE_P| PTE_U|PTE_W) < 0)
 		return -E_NO_MEM;
-	page_remove(curenv ->env_pgdir , (void *) now_addr);
+	page_remove(curenv->env_pgdir , (void *) now_addr);
 	env_run(curenv);
 	return 0;
 }
@@ -441,21 +441,7 @@ static void sys_change_priority(envid_t envid, int p) {
 	//cprintf("%d", envs[envid].priority);
 	return;
 }
-/*
-struct My_Disk {
-	struct My_Disk* next;
-	uint32_t data;
-	int now;
-	bool dirty;
-};
-struct My_Disk* user_raid2_disk[7];
-struct My_Disk* origin_raid2_disk[7];
-struct My_Disk* raid2_disks;
-int nraid2_disks = 199 ;
-int now_raid2_disk = 0;
-int now_raid2_add = 0 ;
-int nn_add[7] = {0,0,4,0,5,6,2};
-#define URAID 0x00600000
+
 
 static void disk_alloc() {
 	int i;
@@ -495,14 +481,18 @@ static void sys_raid2_init() {
 }
 
 static void sys_raid2_add(int num, uint32_t* a) {
-	int l = num / 32 + 1;
+	int l = (num - 1)/ 32 + 1;
 	if (num == 0) return;
 	int i, j;
 	for (i = 0; i < l; i++) {
 		for (j = 0; j < 32; j++) {
 			int tmp = (a[i] & (1 << j))? 1 : 0;
-			user_raid2_disk[now_raid2_add]->data |= 1 << (user_raid2_disk[now_raid2_add]->now++);
+			if (tmp)
+				user_raid2_disk[now_raid2_add]->data |= 1 << (user_raid2_disk[now_raid2_add]->now++);
+			else 
+				user_raid2_disk[now_raid2_add]->data &= ~(1 << (user_raid2_disk[now_raid2_add]->now));
 			now_raid2_add = nn_add[now_raid2_add];
+			num--;
 			if (num == 0) {
 				Hamming(user_raid2_disk[2]->now, 1);
 				break;
@@ -530,6 +520,7 @@ static void sys_raid2_change(int is_disk, int num, int change) {
 		for (i = 0; i < 7; i++)
 			tmp_disk[i] = tmp_disk[i]->next;
 	}
+	return;
 	//int a = 
 }
 
@@ -537,7 +528,7 @@ static void sys_raid2_change(int is_disk, int num, int change) {
 struct My_Disk* tmp_disk[7];
 
 static void sys_raid2_check() { 
-	cprintf("check check");
+	cprintf("check check\n");
 	int sum_d = 0;
 	int i;
 	for (i = 0; i < 7; i++) {
@@ -546,9 +537,13 @@ static void sys_raid2_check() {
 	}
 	int now_num = 0;
 	for (;tmp_disk[0] != NULL;) {
+		cprintf("%d\n", sum_d);
 		uint32_t a1 = (tmp_disk[2]->data ^ tmp_disk[4]->data ^ tmp_disk[6]->data);
 		uint32_t a2 = (tmp_disk[2]->data ^ tmp_disk[5]->data ^ tmp_disk[6]->data);
 		uint32_t a3 = (tmp_disk[5]->data ^ tmp_disk[4]->data ^ tmp_disk[6]->data);
+		for (i = 0; i < 7; i++) {
+			cprintf("%x\n", tmp_disk[i]->data); 
+		}
 		for (i = 0; i < 32; i++) {
 			int b1 = 0, b2 = 0, b3 = 0;
 			if ((tmp_disk[0]->data ^ a1) & (1 << i)) {
@@ -561,6 +556,7 @@ static void sys_raid2_check() {
 				b3 = 4;
 			}
 			int st = b1 + b2 + b3 - 1;
+			cprintf("%d\n", st);
 			if (sum_d > 2 || !tmp_disk[st]->dirty) {
 				cprintf("%d round disk %d bit cannot repair\n", now_num, i);
 			} else {
@@ -572,14 +568,16 @@ static void sys_raid2_check() {
 //		check_raid2_disk();
 		sum_d = 0;
 		for (i = 0; i < 7; i++) {
+			if (tmp_disk[i]->next == NULL) return;
 			tmp_disk[i] = tmp_disk[i]->next;
 			if (tmp_disk[i]->dirty) sum_d++;
 		}
 		now_num++;
 	}
+	return;
 
 }
-*/
+
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -632,7 +630,7 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		case SYS_env_set_trapframe : 
 			return sys_env_set_trapframe((envid_t) a1, (struct Trapframe*) a2);
 			goto _success_invoke;
-/*		case SYS_raid2_init :
+		case SYS_raid2_init :
 			sys_raid2_init();
 			goto _success_invoke;
 		case SYS_raid2_add :
@@ -643,7 +641,7 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 			goto _success_invoke;
 		case SYS_raid2_check :
 			sys_raid2_check();
-			goto _success_invoke;*/
+			goto _success_invoke;
 		case SYS_exec : 
 			return sys_exec((uint32_t) a1 , (uint32_t) a2 , (void *) a3 , (uint32_t) a4);
 		default :

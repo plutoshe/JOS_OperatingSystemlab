@@ -19,10 +19,10 @@ enum {
 	SYS_ipc_recv,
 	SYS_exec,
 	SYS_change_priority,
-/*	SYS_raid2_init,
+	SYS_raid2_init,
 	SYS_raid2_add,
 	SYS_raid2_change,
-	SYS_raid2_check,*/
+	SYS_raid2_check,
 	NSYSCALLS
 };
 

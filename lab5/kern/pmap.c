@@ -20,6 +20,14 @@ static size_t npages_basemem;	// Amount of base memory (in pages)
 pde_t *kern_pgdir;		// Kernel's initial page directory
 struct PageInfo *pages;		// Physical page state array
 static struct PageInfo *page_free_list;	// Free list of physical pages
+int nraid2_disks = 100;
+struct My_Disk* raid2_disks;
+struct My_Disk* origin_raid2_disk[7];
+struct My_Disk* user_raid2_disk[7];
+int now_raid2_add;
+int now_raid2_disk;
+int nn_add[7] = {0, 0, 4, 0, 5, 6, 2}; 
+#define URAID 0x700000
 
 
 // --------------------------------------------------------------
@@ -161,7 +169,7 @@ mem_init(void)
 	// LAB 3: Your code here.
 	envs = (struct Env*) boot_alloc(NENV * sizeof(struct Env));
 
-	//raid2_disks = (struct My_Disk*) boot_alloc(nraid2_disks * sizeof(struct My_Disk));
+	raid2_disks = (struct My_Disk*) boot_alloc(nraid2_disks * sizeof(struct My_Disk));
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
@@ -197,7 +205,7 @@ mem_init(void)
 	// LAB 3: Your code here.
 	boot_map_region(kern_pgdir, UENVS, ROUNDUP(NENV * sizeof(struct Env), PGSIZE), PADDR(envs), PTE_U | PTE_P);
 
-//	boot_map_region(kern_pgdir, URAID, ROUNDUP(nraid2_disks * sizeof(struct My_Disk), PGSIZE), PADDR(raid2_disks), PTE_U | PTE_P);
+	boot_map_region(kern_pgdir, URAID, ROUNDUP(nraid2_disks * sizeof(struct My_Disk), PGSIZE), PADDR(raid2_disks), PTE_U | PTE_P);
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
@@ -880,8 +888,8 @@ check_kern_pgdir(void)
 			if (i >= PDX(KERNBASE)) {
 				assert(pgdir[i] & PTE_P);
 				assert(pgdir[i] & PTE_W);
-			} else
-				assert(pgdir[i] == 0);
+			}/* else
+				assert(pgdir[i] == 0);*/
 			break;
 		}
 	}
