@@ -4,6 +4,7 @@
 #include <inc/error.h>
 #include <inc/string.h>
 #include <inc/assert.h>
+#include <inc/elf.h>
 
 #include <kern/env.h>
 #include <kern/pmap.h>
@@ -11,7 +12,7 @@
 #include <kern/syscall.h>
 #include <kern/console.h>
 #include <kern/sched.h>
-
+#define MYTEMPLATE 0x80000000 
 // Print a string to the system console.
 // The string is exactly 'len' characters long.
 // Destroys the environment on memory errors.
@@ -215,6 +216,42 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 //	panic("sys_page_alloc not implemented");
 }
 
+static int
+sys_exec(uint32_t eip , uint32_t esp , void * v_ph , uint32_t phnum)
+
+{
+	memset (( void *)(&curenv ->env_tf.tf_regs), 0, sizeof(struct PushRegs));
+	curenv ->env_tf.tf_eip = eip;
+	curenv ->env_tf.tf_esp = esp;
+	int perm , i;
+	uint32_t now_addr = MYTEMPLATE;
+	uint32_t va , end_addr;
+	struct PageInfo * pg;
+	struct Proghdr * ph = (struct Proghdr *) v_ph;
+	for (i = 0; i < phnum; i++, ph++) {
+		if (ph ->p_type != ELF_PROG_LOAD)
+			continue ;
+		perm = PTE_P | PTE_U;
+		if (ph ->p_flags & ELF_PROG_FLAG_WRITE)
+		perm |= PTE_W;
+		end_addr = ROUNDUP(ph ->p_va + ph ->p_memsz , PGSIZE);
+		for (va = ROUNDDOWN(ph ->p_va , PGSIZE); va != end_addr; now_addr += PGSIZE , va += PGSIZE) {
+			if ((pg = page_lookup(curenv ->env_pgdir , (void *) now_addr , NULL)) == NULL)
+				return -E_NO_MEM;
+			if (page_insert(curenv ->env_pgdir , pg , (void *)va , perm) < 0)
+				return -E_NO_MEM;
+			page_remove(curenv ->env_pgdir , (void *) now_addr);
+		}
+	}
+	if ((pg = page_lookup(curenv ->env_pgdir , (void *) now_addr , NULL)) == NULL)
+		return -E_NO_MEM;
+	if (page_insert(curenv ->env_pgdir , pg , (void *)(USTACKTOP - PGSIZE), PTE_P| PTE_U|PTE_W) < 0)
+		return -E_NO_MEM;
+	page_remove(curenv ->env_pgdir , (void *) now_addr);
+	env_run(curenv);
+	return 0;
+}
+
 // Map the page of memory at 'srcva' in srcenvid's address space
 // at 'dstva' in dstenvid's address space with permission 'perm'.
 // Perm has the same restrictions as in sys_page_alloc, except
@@ -251,9 +288,9 @@ sys_page_map(envid_t srcenvid, void *srcva,
 	r = envid2env(srcenvid, &e1, 1);
 	if (r < 0) 
 		return -E_BAD_ENV;
-	if (( uint32_t)srcva >= UTOP || ROUNDUP(srcva , PGSIZE) != srcva) 
+	if ((uint32_t)srcva >= UTOP || ROUNDUP(srcva, PGSIZE) != srcva) 
 		return -E_INVAL;
-	if (( uint32_t)dstva >= UTOP || ROUNDUP(dstva , PGSIZE) != dstva) 
+	if ((uint32_t)dstva >= UTOP || ROUNDUP(dstva, PGSIZE) != dstva) 
 		return -E_INVAL;
 	if (!((perm & PTE_U) && (perm & PTE_P) && (perm & (~PTE_SYSCALL))==0))
 		return -E_INVAL;
@@ -404,6 +441,19 @@ static void sys_change_priority(envid_t envid, int p) {
 	//cprintf("%d", envs[envid].priority);
 	return;
 }
+
+static void sys_raid2_init
+
+static void sys_raid2_add(int num, int* a) {
+
+}
+
+static void sys_raid2_change() {
+}
+
+static void sys_raid2_check() { 
+}
+
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -456,6 +506,9 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		case SYS_env_set_trapframe : 
 			return sys_env_set_trapframe((envid_t) a1, (struct Trapframe*) a2);
 			goto _success_invoke;
+
+		case SYS_exec : 
+			return sys_exec((uint32_t) a1 , (uint32_t) a2 , (void *) a3 , (uint32_t) a4);
 		default :
 			return -E_INVAL;
 		

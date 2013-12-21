@@ -5,12 +5,12 @@
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
 ALLOC_ZERO	pmap.h	/^	ALLOC_ZERO = 1<<0,$/;"	e	enum:__anon2
-ALT	console.c	224;"	d	file:
+ALT	console.c	227;"	d	file:
 ASSERT	lapic.c	25;"	d	file:
 BCAST	lapic.c	28;"	d	file:
 BUSY	lapic.c	30;"	d	file:
-C	console.c	291;"	d	file:
-CAPSLOCK	console.c	226;"	d	file:
+C	console.c	294;"	d	file:
+CAPSLOCK	console.c	229;"	d	file:
 CGA_BASE	console.h	13;"	d
 CGA_BUF	console.h	14;"	d
 CHECKSUM	entry.S	/^#define CHECKSUM (-(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS))$/;"	d
@@ -45,14 +45,14 @@ COM_MCR_OUT2	console.c	43;"	d	file:
 COM_MCR_RTS	console.c	41;"	d	file:
 COM_RX	console.c	29;"	d	file:
 COM_TX	console.c	30;"	d	file:
-CONSBUFSIZE	console.c	390;"	d	file:
+CONSBUFSIZE	console.c	393;"	d	file:
 CPU_HALTED	cpu.h	/^	CPU_HALTED,$/;"	e	enum:__anon3
 CPU_STARTED	cpu.h	/^	CPU_STARTED,$/;"	e	enum:__anon3
 CPU_UNUSED	cpu.h	/^	CPU_UNUSED = 0,$/;"	e	enum:__anon3
 CRT_COLS	console.h	17;"	d
 CRT_ROWS	console.h	16;"	d
 CRT_SIZE	console.h	18;"	d
-CTL	console.c	223;"	d	file:
+CTL	console.c	226;"	d	file:
 Command	monitor.c	/^struct Command {$/;"	s	file:
 Command::desc	monitor.c	/^	const char *desc;$/;"	m	struct:Command	file:	access:public
 Command::func	monitor.c	/^	int (*func)(int argc, char** argv, struct Trapframe* tf);$/;"	m	struct:Command	file:	access:public
@@ -65,7 +65,7 @@ CpuInfo::cpu_ts	cpu.h	/^	struct Taskstate cpu_ts;        \/\/ Used by x86 to fin
 DEASSERT	lapic.c	26;"	d	file:
 DEBUG_SPINLOCK	spinlock.h	7;"	d
 DELIVS	lapic.c	24;"	d	file:
-E0ESC	console.c	230;"	d	file:
+E0ESC	console.c	233;"	d	file:
 ENABLE	lapic.c	19;"	d	file:
 ENVGENSHIFT	env.c	22;"	d	file:
 ENV_CREATE	env.h	29;"	d
@@ -124,10 +124,15 @@ MULTIBOOT_HEADER_MAGIC	entry.S	/^#define MULTIBOOT_HEADER_MAGIC (0x1BADB002)$/;"
 MYHANDLER	trapentry.S	/^#define MYHANDLER(name, num)						\\$/;"	d
 MYHANDLER_NOEC	trapentry.S	/^#define MYHANDLER_NOEC(name, num)					\\$/;"	d
 MYHANDLER_NULL	trapentry.S	/^#define MYHANDLER_NULL() \\$/;"	d
+MYTEMPLATE	syscall.c	15;"	d	file:
+My_Disk	pmap.h	/^struct My_Disk {$/;"	s
+My_Disk::entry	pmap.h	/^	uint32_t entry;$/;"	m	struct:My_Disk	access:public
+My_Disk::next	pmap.h	/^	struct My_Disk* next;$/;"	m	struct:My_Disk	typeref:struct:My_Disk::My_Disk	access:public
+My_Disk::now	pmap.h	/^	int now;$/;"	m	struct:My_Disk	access:public
 NCOMMANDS	monitor.c	48;"	d	file:
 NCPU	cpu.h	11;"	d
-NO	console.c	220;"	d	file:
-NUMLOCK	console.c	227;"	d	file:
+NO	console.c	223;"	d	file:
+NUMLOCK	console.c	230;"	d	file:
 NVRAM_BASEHI	kclock.h	16;"	d
 NVRAM_BASELO	kclock.h	15;"	d
 NVRAM_CENTURY	kclock.h	27;"	d
@@ -142,8 +147,8 @@ PERIODIC	lapic.c	35;"	d	file:
 POINT_SIZE	monitor.c	223;"	d	file:
 RELOC	entry.S	/^#define	RELOC(x) ((x) - KERNBASE)$/;"	d
 RELOC	mpentry.S	/^#define RELOC(x) ((x) - KERNBASE)$/;"	d
-SCROLLLOCK	console.c	228;"	d	file:
-SHIFT	console.c	222;"	d	file:
+SCROLLLOCK	console.c	231;"	d	file:
+SHIFT	console.c	225;"	d	file:
 SRL	entry.S	/^#define SRL(val, shamt)		(((val) >> (shamt)) & ~(-1 << (32 - (shamt))))$/;"	d
 STARTUP	lapic.c	23;"	d	file:
 SVR	lapic.c	18;"	d	file:
@@ -242,6 +247,7 @@ eip_line	kdebug.h	/^	int eip_line;			\/\/ Source code linenumber for EIP$/;"	m	s
 entries	mpconfig.c	/^	uint8_t entries[0];             \/\/ table entries$/;"	m	struct:mpconf	file:	access:public
 entry	entry.S	/^entry:$/;"	l
 entry	mpconfig.c	/^	uint16_t entry;                 \/\/ entry count$/;"	m	struct:mpconf	file:	access:public
+entry	pmap.h	/^	uint32_t entry;$/;"	m	struct:My_Disk	access:public
 entry_pgdir	entrypgdir.c	/^pde_t entry_pgdir[NPDENTRIES] = {$/;"	v
 entry_pgtable	entrypgdir.c	/^pte_t entry_pgtable[NPTENTRIES] = {$/;"	v
 entry_pgtable	entrypgdir.c	/^pte_t entry_pgtable[NPTENTRIES];$/;"	v
@@ -389,7 +395,9 @@ name	spinlock.h	/^	char *name;            \/\/ Name of lock.$/;"	m	struct:spinlo
 name	trapentry.S	/^	name:								\\$/;"	l
 name	trapentry.S	/^	name:			\/* function starts here *\/		\\$/;"	l
 ncpu	mpconfig.c	/^int ncpu;$/;"	v
+next	pmap.h	/^	struct My_Disk* next;$/;"	m	struct:My_Disk	typeref:struct:My_Disk::My_Disk	access:public
 normalmap	console.c	/^static uint8_t normalmap[256] =$/;"	v	file:
+now	pmap.h	/^	int now;$/;"	m	struct:My_Disk	access:public
 npages	pmap.c	/^size_t npages;			\/\/ Amount of physical memory (in pages)$/;"	v
 npages_basemem	pmap.c	/^static size_t npages_basemem;	\/\/ Amount of base memory (in pages)$/;"	v	file:
 nvram_read	pmap.c	/^nvram_read(int r)$/;"	f	file:	signature:(int r)
@@ -432,6 +440,7 @@ print_trapframe	trap.h	/^void print_trapframe(struct Trapframe *tf);$/;"	p	signa
 product	mpconfig.c	/^	uint8_t product[20];            \/\/ product id$/;"	m	struct:mpconf	file:	access:public
 putch	printf.c	/^putch(int ch, int *cnt)$/;"	f	file:	signature:(int ch, int *cnt)
 pxtoi	monitor.c	/^bool pxtoi(uint32_t *va, char *origin) {$/;"	f	signature:(uint32_t *va, char *origin)
+raid2_disk	pmap.h	/^static struct My_Disk raid2_disk[7];$/;"	v	typeref:struct:My_Disk
 region_alloc	env.c	/^region_alloc(struct Env *e, void *va, size_t len)$/;"	f	file:	signature:(struct Env *e, void *va, size_t len)
 relocated	entry.S	/^relocated:$/;"	l
 reserved	mpconfig.c	/^	uint8_t reserved;$/;"	m	struct:mpconf	file:	access:public
@@ -477,10 +486,13 @@ stabstr_end	kdebug.c	/^	const char *stabstr_end;$/;"	m	struct:UserStabData	file:
 start32	mpentry.S	/^start32:$/;"	l
 sum	mpconfig.c	/^sum(void *addr, int len)$/;"	f	file:	signature:(void *addr, int len)
 sys_cgetc	syscall.c	/^sys_cgetc(void)$/;"	f	file:	signature:(void)
+sys_change_priority	syscall.c	/^static void sys_change_priority(envid_t envid, int p) {$/;"	f	file:	signature:(envid_t envid, int p)
 sys_cputs	syscall.c	/^sys_cputs(const char *s, size_t len)$/;"	f	file:	signature:(const char *s, size_t len)
 sys_env_destroy	syscall.c	/^sys_env_destroy(envid_t envid)$/;"	f	file:	signature:(envid_t envid)
 sys_env_set_pgfault_upcall	syscall.c	/^sys_env_set_pgfault_upcall(envid_t envid, void *func)$/;"	f	file:	signature:(envid_t envid, void *func)
 sys_env_set_status	syscall.c	/^sys_env_set_status(envid_t envid, int status)$/;"	f	file:	signature:(envid_t envid, int status)
+sys_env_set_trapframe	syscall.c	/^sys_env_set_trapframe(envid_t envid, struct Trapframe *tf)$/;"	f	file:	signature:(envid_t envid, struct Trapframe *tf)
+sys_exec	syscall.c	/^sys_exec(uint32_t eip , uint32_t esp , void * v_ph , uint32_t phnum)$/;"	f	file:	signature:(uint32_t eip , uint32_t esp , void * v_ph , uint32_t phnum)
 sys_exofork	syscall.c	/^sys_exofork(void)$/;"	f	file:	signature:(void)
 sys_getenvid	syscall.c	/^sys_getenvid(void)$/;"	f	file:	signature:(void)
 sys_ipc_recv	syscall.c	/^sys_ipc_recv(void *dstva)$/;"	f	file:	signature:(void *dstva)
@@ -488,6 +500,9 @@ sys_ipc_try_send	syscall.c	/^sys_ipc_try_send(envid_t envid, uint32_t value, voi
 sys_page_alloc	syscall.c	/^sys_page_alloc(envid_t envid, void *va, int perm)$/;"	f	file:	signature:(envid_t envid, void *va, int perm)
 sys_page_map	syscall.c	/^sys_page_map(envid_t srcenvid, void *srcva,$/;"	f	file:	signature:(envid_t srcenvid, void *srcva, envid_t dstenvid, void *dstva, int perm)
 sys_page_unmap	syscall.c	/^sys_page_unmap(envid_t envid, void *va)$/;"	f	file:	signature:(envid_t envid, void *va)
+sys_raid2_add	syscall.c	/^static void sys_raid2_add(int num, int* a) {$/;"	f	file:	signature:(int num, int* a)
+sys_raid2_change	syscall.c	/^static void sys_raid2_change() {$/;"	f	file:
+sys_raid2_check	syscall.c	/^static void sys_raid2_check() { $/;"	f	file:
 sys_yield	syscall.c	/^sys_yield(void)$/;"	f	file:	signature:(void)
 syscall	syscall.c	/^syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)$/;"	f	signature:(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
 syscall	syscall.h	/^int32_t syscall(uint32_t num, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5);$/;"	p	signature:(uint32_t num, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)

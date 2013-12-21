@@ -160,6 +160,7 @@ mem_init(void)
 	// LAB 3: Your code here.
 	envs = (struct Env*) boot_alloc(NENV * sizeof(struct Env));
 
+
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
 	// up the list of free physical pages. Once we've done so, all further
