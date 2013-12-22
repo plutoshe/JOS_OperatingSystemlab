@@ -458,6 +458,11 @@ static void disk_alloc() {
 
 static void Hamming(int now, int alloc) {
 //	int now = user_raid2_disk[2]->now;
+
+	user_raid2_disk[0]->data &= ~(1 << now);
+	user_raid2_disk[1]->data &= ~(1 << now);
+	user_raid2_disk[3]->data &= ~(1 << now);
+
 	user_raid2_disk[0]->data |= (user_raid2_disk[2]->data ^ user_raid2_disk[4]->data ^ user_raid2_disk[6]->data) & (1 << now);
 	user_raid2_disk[1]->data |= (user_raid2_disk[2]->data ^ user_raid2_disk[5]->data ^ user_raid2_disk[6]->data) & (1 << now);
 	user_raid2_disk[3]->data |= (user_raid2_disk[5]->data ^ user_raid2_disk[4]->data ^ user_raid2_disk[6]->data) & (1 << now);
@@ -485,23 +490,29 @@ static void sys_raid2_add(int num, uint32_t* a) {
 	if (num == 0) return;
 	int i, j;
 	for (i = 0; i < l; i++) {
+		cprintf("add %d\n", a[i]);
 		for (j = 0; j < 32; j++) {
 			int tmp = (a[i] & (1 << j))? 1 : 0;
+			cprintf("   padd %d %d %d\n ", tmp, now_raid2_add, user_raid2_disk[now_raid2_add]->now);
 			if (tmp)
-				user_raid2_disk[now_raid2_add]->data |= 1 << (user_raid2_disk[now_raid2_add]->now++);
+				user_raid2_disk[now_raid2_add]->data |= 1 << (user_raid2_disk[now_raid2_add]->now);
 			else 
 				user_raid2_disk[now_raid2_add]->data &= ~(1 << (user_raid2_disk[now_raid2_add]->now));
+			user_raid2_disk[now_raid2_add]->now++;
 			now_raid2_add = nn_add[now_raid2_add];
 			num--;
 			if (num == 0) {
-				Hamming(user_raid2_disk[2]->now, 1);
+				Hamming(user_raid2_disk[2]->now - 1, 1);
 				break;
 			}
 			if (now_raid2_add == 2) {
-				Hamming(user_raid2_disk[2]->now, 1);
+				Hamming(user_raid2_disk[2]->now - 1, 1);
 			}
 		}
 	}
+	cprintf("!!!!");
+	for (i = 0; i < 7; i++)
+		cprintf("%x\n", user_raid2_disk[i]->data);
 }
 
 static void sys_raid2_change(int is_disk, int num, int change) {
@@ -538,24 +549,33 @@ static void sys_raid2_check() {
 	int now_num = 0;
 	for (;tmp_disk[0] != NULL;) {
 		cprintf("%d\n", sum_d);
-		uint32_t a1 = (tmp_disk[2]->data ^ tmp_disk[4]->data ^ tmp_disk[6]->data);
-		uint32_t a2 = (tmp_disk[2]->data ^ tmp_disk[5]->data ^ tmp_disk[6]->data);
-		uint32_t a3 = (tmp_disk[5]->data ^ tmp_disk[4]->data ^ tmp_disk[6]->data);
+		uint32_t a1 = (tmp_disk[2]->data ^ tmp_disk[4]->data ^ tmp_disk[6]->data ^ tmp_disk[0]->data);
+		uint32_t a2 = (tmp_disk[2]->data ^ tmp_disk[5]->data ^ tmp_disk[6]->data ^ tmp_disk[1]->data);
+		uint32_t a3 = (tmp_disk[5]->data ^ tmp_disk[4]->data ^ tmp_disk[6]->data ^ tmp_disk[3]->data);
+		cprintf("start!\n");
 		for (i = 0; i < 7; i++) {
 			cprintf("%x\n", tmp_disk[i]->data); 
 		}
+		cprintf("end!\n");
+//		cout << a1 << endl;
+		cprintf("%x  %x  %x\n", a1, a2, a3);
+//		cout << a2 << endl;
+//		cout
 		for (i = 0; i < 32; i++) {
 			int b1 = 0, b2 = 0, b3 = 0;
-			if ((tmp_disk[0]->data ^ a1) & (1 << i)) {
+			if ((a1) & (1 << i)) {
 				b1 = 1;
 			}
-			if ((tmp_disk[1]->data ^ a2) & (1 << i)) {
+			if ((a2) & (1 << i)) {
 				b2 = 2;
 			}
-			if ((tmp_disk[3]->data ^ a3) & (1 << i)) {
+			if ((a3) & (1 << i)) {
 				b3 = 4;
 			}
+			
+			
 			int st = b1 + b2 + b3 - 1;
+			if (st< 0) continue;
 			cprintf("%d\n", st);
 			if (sum_d > 2 || !tmp_disk[st]->dirty) {
 				cprintf("%d round disk %d bit cannot repair\n", now_num, i);
