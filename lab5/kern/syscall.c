@@ -561,7 +561,9 @@ static void sys_raid2_check() {
 		cprintf("%x  %x  %x\n", a1, a2, a3);
 //		cout << a2 << endl;
 //		cout
-		for (i = 0; i < 32; i++) {
+		int l = 0;
+		int t = 0;
+		for (i = 0; i < tmp_disk[2]->now; i++) {
 			int b1 = 0, b2 = 0, b3 = 0;
 			if ((a1) & (1 << i)) {
 				b1 = 1;
@@ -572,8 +574,6 @@ static void sys_raid2_check() {
 			if ((a3) & (1 << i)) {
 				b3 = 4;
 			}
-			
-			
 			int st = b1 + b2 + b3 - 1;
 			if (st< 0) continue;
 			cprintf("%d\n", st);
@@ -584,6 +584,26 @@ static void sys_raid2_check() {
 				tmp_disk[st]->data ^= (1 << i);
 			}
 		}
+		cprintf("data\n");
+		for (i = 0; i < tmp_disk[2]->now; i++) {	
+			t |= (!!(tmp_disk[2]->data & (1 << i))) <<  l;
+			l++;
+			t |= (!!(tmp_disk[4]->data & (1 << i))) <<  l;
+			l++;
+			t |= (!!(tmp_disk[5]->data & (1 << i))) <<  l;
+			l++;
+			t |= (!!(tmp_disk[6]->data & (1 << i))) <<  l;
+			l++;
+			if (l == 32) {
+				cprintf("%d ", t);
+				l = 0;
+				t = 0;
+			}
+		}
+		if (l != 0) {
+			cprintf("%d", t);
+		}
+		cprintf("\n");
 		
 //		check_raid2_disk();
 		sum_d = 0;
