@@ -453,6 +453,7 @@ static void disk_alloc() {
 		user_raid2_disk[i]->now = 0;
 		user_raid2_disk[i]->dirty = false;
 	}
+	cprintf("~~~~~~~~~~~~~~~~~~%d~~~~~~~~~~~~~~~~~~~~", now_raid2_disk);
 	return;
 }
 
@@ -472,6 +473,7 @@ static void Hamming(int now, int alloc) {
 }
 
 static void sys_raid2_init() {
+	cprintf("~~~~~~~~~~~~~~~~~~%d~~~~~~~~~~~~~~~~~~~~", now_raid2_disk);
 	int i;
 	for (i = 0; i < 7; i++, now_raid2_disk++) {
 		user_raid2_disk[i] = &raid2_disks[now_raid2_disk];
@@ -490,10 +492,10 @@ static void sys_raid2_add(int num, uint32_t* a) {
 	if (num == 0) return;
 	int i, j;
 	for (i = 0; i < l; i++) {
-		cprintf("add %d\n", a[i]);
+//		cprintf("add %d\n", a[i]);
 		for (j = 0; j < 32; j++) {
 			int tmp = (a[i] & (1 << j))? 1 : 0;
-			cprintf("   padd %d %d %d\n ", tmp, now_raid2_add, user_raid2_disk[now_raid2_add]->now);
+//			cprintf("   padd %d %d %d\n ", tmp, now_raid2_add, user_raid2_disk[now_raid2_add]->now);
 			if (tmp)
 				user_raid2_disk[now_raid2_add]->data |= 1 << (user_raid2_disk[now_raid2_add]->now);
 			else 
@@ -531,6 +533,11 @@ static void sys_raid2_change(int is_disk, int num, int change) {
 		for (i = 0; i < 7; i++)
 			tmp_disk[i] = tmp_disk[i]->next;
 	}
+	int row = num / 4;
+	int col = num % 4;
+	if (col >= 1) col += 3; else col += 2;
+	tmp_disk[col]->data &= ~(1 << row);
+	tmp_disk[col]->data |= change;
 	return;
 	//int a = 
 }
@@ -548,7 +555,7 @@ static void sys_raid2_check() {
 	}
 	int now_num = 0;
 	for (;tmp_disk[0] != NULL;) {
-		cprintf("%d\n", sum_d);
+		cprintf("-------------------------------------%d %d\n", now_num, sum_d);
 		uint32_t a1 = (tmp_disk[2]->data ^ tmp_disk[4]->data ^ tmp_disk[6]->data ^ tmp_disk[0]->data);
 		uint32_t a2 = (tmp_disk[2]->data ^ tmp_disk[5]->data ^ tmp_disk[6]->data ^ tmp_disk[1]->data);
 		uint32_t a3 = (tmp_disk[5]->data ^ tmp_disk[4]->data ^ tmp_disk[6]->data ^ tmp_disk[3]->data);
@@ -558,7 +565,7 @@ static void sys_raid2_check() {
 		}
 		cprintf("end!\n");
 //		cout << a1 << endl;
-		cprintf("%x  %x  %x\n", a1, a2, a3);
+	//	cprintf("%x  %x  %x\n", a1, a2, a3);
 //		cout << a2 << endl;
 //		cout
 		int l = 0;
