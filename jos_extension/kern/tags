@@ -1,0 +1,549 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+ALLOC_ZERO	pmap.h	/^	ALLOC_ZERO = 1<<0,$/;"	e	enum:__anon2
+ALT	console.c	227;"	d	file:
+ASSERT	lapic.c	25;"	d	file:
+BCAST	lapic.c	28;"	d	file:
+BUSY	lapic.c	30;"	d	file:
+C	console.c	294;"	d	file:
+CAPSLOCK	console.c	229;"	d	file:
+CGA_BASE	console.h	13;"	d
+CGA_BUF	console.h	14;"	d
+CHECKSUM	entry.S	/^#define CHECKSUM (-(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS))$/;"	d
+CMDBUF_SIZE	monitor.c	17;"	d	file:
+COLOR_BLK	monitor.c	19;"	d	file:
+COLOR_BLU	monitor.c	20;"	d	file:
+COLOR_CYN	monitor.c	27;"	d	file:
+COLOR_GRN	monitor.c	21;"	d	file:
+COLOR_GRY	monitor.c	23;"	d	file:
+COLOR_ORG	monitor.c	25;"	d	file:
+COLOR_PUR	monitor.c	26;"	d	file:
+COLOR_RED	monitor.c	22;"	d	file:
+COLOR_WHT	monitor.c	18;"	d	file:
+COLOR_YLW	monitor.c	24;"	d	file:
+COM1	console.c	27;"	d	file:
+COM_DLL	console.c	31;"	d	file:
+COM_DLM	console.c	32;"	d	file:
+COM_FCR	console.c	36;"	d	file:
+COM_IER	console.c	33;"	d	file:
+COM_IER_RDI	console.c	34;"	d	file:
+COM_IIR	console.c	35;"	d	file:
+COM_LCR	console.c	37;"	d	file:
+COM_LCR_DLAB	console.c	38;"	d	file:
+COM_LCR_WLEN8	console.c	39;"	d	file:
+COM_LSR	console.c	44;"	d	file:
+COM_LSR_DATA	console.c	45;"	d	file:
+COM_LSR_TSRE	console.c	47;"	d	file:
+COM_LSR_TXRDY	console.c	46;"	d	file:
+COM_MCR	console.c	40;"	d	file:
+COM_MCR_DTR	console.c	42;"	d	file:
+COM_MCR_OUT2	console.c	43;"	d	file:
+COM_MCR_RTS	console.c	41;"	d	file:
+COM_RX	console.c	29;"	d	file:
+COM_TX	console.c	30;"	d	file:
+CONSBUFSIZE	console.c	393;"	d	file:
+CPU_HALTED	cpu.h	/^	CPU_HALTED,$/;"	e	enum:__anon3
+CPU_STARTED	cpu.h	/^	CPU_STARTED,$/;"	e	enum:__anon3
+CPU_UNUSED	cpu.h	/^	CPU_UNUSED = 0,$/;"	e	enum:__anon3
+CRT_COLS	console.h	17;"	d
+CRT_ROWS	console.h	16;"	d
+CRT_SIZE	console.h	18;"	d
+CTL	console.c	226;"	d	file:
+Command	monitor.c	/^struct Command {$/;"	s	file:
+Command::desc	monitor.c	/^	const char *desc;$/;"	m	struct:Command	file:	access:public
+Command::func	monitor.c	/^	int (*func)(int argc, char** argv, struct Trapframe* tf);$/;"	m	struct:Command	file:	access:public
+Command::name	monitor.c	/^	const char *name;$/;"	m	struct:Command	file:	access:public
+CpuInfo	cpu.h	/^struct CpuInfo {$/;"	s
+CpuInfo::cpu_env	cpu.h	/^	struct Env *cpu_env;            \/\/ The currently-running environment.$/;"	m	struct:CpuInfo	typeref:struct:CpuInfo::Env	access:public
+CpuInfo::cpu_id	cpu.h	/^	uint8_t cpu_id;                 \/\/ Local APIC ID; index into cpus[] below$/;"	m	struct:CpuInfo	access:public
+CpuInfo::cpu_status	cpu.h	/^	volatile unsigned cpu_status;   \/\/ The status of the CPU$/;"	m	struct:CpuInfo	access:public
+CpuInfo::cpu_ts	cpu.h	/^	struct Taskstate cpu_ts;        \/\/ Used by x86 to find stack for interrupt$/;"	m	struct:CpuInfo	typeref:struct:CpuInfo::Taskstate	access:public
+DEASSERT	lapic.c	26;"	d	file:
+DEBUG_SPINLOCK	spinlock.h	7;"	d
+DELIVS	lapic.c	24;"	d	file:
+E0ESC	console.c	233;"	d	file:
+ENABLE	lapic.c	19;"	d	file:
+ENVGENSHIFT	env.c	22;"	d	file:
+ENV_CREATE	env.h	29;"	d
+ENV_PASTE3	env.h	27;"	d
+EOI	lapic.c	17;"	d	file:
+ERROR	lapic.c	39;"	d	file:
+ESR	lapic.c	20;"	d	file:
+Eipdebuginfo	kdebug.h	/^struct Eipdebuginfo {$/;"	s
+Eipdebuginfo::eip_file	kdebug.h	/^	const char *eip_file;		\/\/ Source code filename for EIP$/;"	m	struct:Eipdebuginfo	access:public
+Eipdebuginfo::eip_fn_addr	kdebug.h	/^	uintptr_t eip_fn_addr;		\/\/ Address of start of function$/;"	m	struct:Eipdebuginfo	access:public
+Eipdebuginfo::eip_fn_name	kdebug.h	/^	const char *eip_fn_name;	\/\/ Name of function containing EIP$/;"	m	struct:Eipdebuginfo	access:public
+Eipdebuginfo::eip_fn_namelen	kdebug.h	/^	int eip_fn_namelen;		\/\/ Length of function name$/;"	m	struct:Eipdebuginfo	access:public
+Eipdebuginfo::eip_fn_narg	kdebug.h	/^	int eip_fn_narg;		\/\/ Number of function arguments$/;"	m	struct:Eipdebuginfo	access:public
+Eipdebuginfo::eip_line	kdebug.h	/^	int eip_line;			\/\/ Source code linenumber for EIP$/;"	m	struct:Eipdebuginfo	access:public
+FIXED	lapic.c	31;"	d	file:
+Hamming	syscall.c	/^static void Hamming(int now, int alloc) {$/;"	f	file:	signature:(int now, int alloc)
+ICRHI	lapic.c	32;"	d	file:
+ICRLO	lapic.c	21;"	d	file:
+ID	lapic.c	14;"	d	file:
+INIT	lapic.c	22;"	d	file:
+IO_PIC1	picirq.h	12;"	d
+IO_PIC2	picirq.h	13;"	d
+IO_RTC	kclock.h	9;"	d
+IO_RTC	lapic.c	137;"	d	file:
+IRQ_SLAVE	picirq.h	15;"	d
+JOS_INC_CPU_H	cpu.h	3;"	d
+JOS_INC_SPINLOCK_H	spinlock.h	2;"	d
+JOS_KERN_ENV_H	env.h	4;"	d
+JOS_KERN_KCLOCK_H	kclock.h	4;"	d
+JOS_KERN_KDEBUG_H	kdebug.h	2;"	d
+JOS_KERN_MONITOR_H	monitor.h	2;"	d
+JOS_KERN_PICIRQ_H	picirq.h	4;"	d
+JOS_KERN_PMAP_H	pmap.h	4;"	d
+JOS_KERN_SCHED_H	sched.h	4;"	d
+JOS_KERN_SYSCALL_H	syscall.h	2;"	d
+JOS_KERN_TRAP_H	trap.h	4;"	d
+KADDR	pmap.h	38;"	d
+LEVEL	lapic.c	27;"	d	file:
+LINT0	lapic.c	37;"	d	file:
+LINT1	lapic.c	38;"	d	file:
+MASKED	lapic.c	40;"	d	file:
+MAXARGS	monitor.c	324;"	d	file:
+MAX_IRQS	picirq.h	9;"	d
+MC_NVRAM_SIZE	kclock.h	12;"	d
+MC_NVRAM_START	kclock.h	11;"	d
+MONO_BASE	console.h	11;"	d
+MONO_BUF	console.h	12;"	d
+MPBOOTPHYS	mpentry.S	/^#define MPBOOTPHYS(s) ((s) - mpentry_start + MPENTRY_PADDR)$/;"	d
+MPBUS	mpconfig.c	67;"	d	file:
+MPIOAPIC	mpconfig.c	68;"	d	file:
+MPIOINTR	mpconfig.c	69;"	d	file:
+MPLINTR	mpconfig.c	70;"	d	file:
+MPPROC	mpconfig.c	66;"	d	file:
+MPPROC_BOOT	mpconfig.c	63;"	d	file:
+MULTIBOOT_HEADER_FLAGS	entry.S	/^#define MULTIBOOT_HEADER_FLAGS (0)$/;"	d
+MULTIBOOT_HEADER_MAGIC	entry.S	/^#define MULTIBOOT_HEADER_MAGIC (0x1BADB002)$/;"	d
+MYHANDLER	trapentry.S	/^#define MYHANDLER(name, num)						\\$/;"	d
+MYHANDLER_NOEC	trapentry.S	/^#define MYHANDLER_NOEC(name, num)					\\$/;"	d
+MYHANDLER_NULL	trapentry.S	/^#define MYHANDLER_NULL() \\$/;"	d
+MYTEMPLATE	syscall.c	15;"	d	file:
+My_Disk	pmap.h	/^struct My_Disk {$/;"	s
+My_Disk::data	pmap.h	/^	uint32_t data;$/;"	m	struct:My_Disk	access:public
+My_Disk::dirty	pmap.h	/^	bool dirty;$/;"	m	struct:My_Disk	access:public
+My_Disk::next	pmap.h	/^	struct My_Disk* next;$/;"	m	struct:My_Disk	typeref:struct:My_Disk::My_Disk	access:public
+My_Disk::now	pmap.h	/^	int now;$/;"	m	struct:My_Disk	access:public
+NCOMMANDS	monitor.c	48;"	d	file:
+NCPU	cpu.h	11;"	d
+NO	console.c	223;"	d	file:
+NUMLOCK	console.c	230;"	d	file:
+NVRAM_BASEHI	kclock.h	16;"	d
+NVRAM_BASELO	kclock.h	15;"	d
+NVRAM_CENTURY	kclock.h	27;"	d
+NVRAM_EXTHI	kclock.h	20;"	d
+NVRAM_EXTLO	kclock.h	19;"	d
+NVRAM_PEXTHI	kclock.h	24;"	d
+NVRAM_PEXTLO	kclock.h	23;"	d
+OTHERS	lapic.c	29;"	d	file:
+PADDR	pmap.h	26;"	d
+PCINT	lapic.c	36;"	d	file:
+PERIODIC	lapic.c	35;"	d	file:
+POINT_SIZE	monitor.c	223;"	d	file:
+RELOC	entry.S	/^#define	RELOC(x) ((x) - KERNBASE)$/;"	d
+RELOC	mpentry.S	/^#define RELOC(x) ((x) - KERNBASE)$/;"	d
+SCROLLLOCK	console.c	231;"	d	file:
+SHIFT	console.c	225;"	d	file:
+SRL	entry.S	/^#define SRL(val, shamt)		(((val) >> (shamt)) & ~(-1 << (32 - (shamt))))$/;"	d
+STARTUP	lapic.c	23;"	d	file:
+SVR	lapic.c	18;"	d	file:
+TCCR	lapic.c	42;"	d	file:
+TDCR	lapic.c	43;"	d	file:
+TICR	lapic.c	41;"	d	file:
+TIMER	lapic.c	33;"	d	file:
+TPR	lapic.c	16;"	d	file:
+TRAPHANDLER	trapentry.S	/^#define TRAPHANDLER(name, num)						\\$/;"	d
+TRAPHANDLER_NOEC	trapentry.S	/^#define TRAPHANDLER_NOEC(name, num)					\\$/;"	d
+URAID	pmap.h	107;"	d
+UserStabData	kdebug.c	/^struct UserStabData {$/;"	s	file:
+UserStabData::stab_end	kdebug.c	/^	const struct Stab *stab_end;$/;"	m	struct:UserStabData	typeref:struct:UserStabData::Stab	file:	access:public
+UserStabData::stabs	kdebug.c	/^	const struct Stab *stabs;$/;"	m	struct:UserStabData	typeref:struct:UserStabData::Stab	file:	access:public
+UserStabData::stabstr	kdebug.c	/^	const char *stabstr;$/;"	m	struct:UserStabData	file:	access:public
+UserStabData::stabstr_end	kdebug.c	/^	const char *stabstr_end;$/;"	m	struct:UserStabData	file:	access:public
+VER	lapic.c	15;"	d	file:
+WHITESPACE	monitor.c	323;"	d	file:
+X1	lapic.c	34;"	d	file:
+_CONSOLE_H_	console.h	4;"	d
+__anon1::buf	console.c	/^	uint8_t buf[CONSBUFSIZE];$/;"	m	struct:__anon1	file:	access:public
+__anon1::rpos	console.c	/^	uint32_t rpos;$/;"	m	struct:__anon1	file:	access:public
+__anon1::wpos	console.c	/^	uint32_t wpos;$/;"	m	struct:__anon1	file:	access:public
+__spin_initlock	spinlock.c	/^__spin_initlock(struct spinlock *lk, char *name)$/;"	f	signature:(struct spinlock *lk, char *name)
+__spin_initlock	spinlock.h	/^void __spin_initlock(struct spinlock *lk, char *name);$/;"	p	signature:(struct spinlock *lk, char *name)
+_alltraps	trapentry.S	/^_alltraps:$/;"	l
+_kaddr	pmap.h	/^_kaddr(const char *file, int line, physaddr_t pa)$/;"	f	signature:(const char *file, int line, physaddr_t pa)
+_paddr	pmap.h	/^_paddr(const char *file, int line, void *kva)$/;"	f	signature:(const char *file, int line, void *kva)
+_panic	init.c	/^_panic(const char *file, int line, const char *fmt,...)$/;"	f	signature:(const char *file, int line, const char *fmt,...)
+_start	entry.S	/^_start = RELOC(entry)$/;"	d
+_warn	init.c	/^_warn(const char *file, int line, const char *fmt,...)$/;"	f	signature:(const char *file, int line, const char *fmt,...)
+addr_6845	console.c	/^static unsigned addr_6845;$/;"	v	file:
+apicid	mpconfig.c	/^	uint8_t apicid;                 \/\/ local APIC id$/;"	m	struct:mpproc	file:	access:public
+attribute_color	console.h	/^static uint16_t attribute_color = 0x0700;$/;"	v
+backtrace	trap.h	/^void backtrace(struct Trapframe *);$/;"	p	signature:(struct Trapframe *)
+boot_alloc	pmap.c	/^boot_alloc(uint32_t n)$/;"	f	file:	signature:(uint32_t n)
+boot_aps	init.c	/^boot_aps(void)$/;"	f	file:	signature:(void)
+boot_aps	init.c	/^static void boot_aps(void);$/;"	p	file:	signature:(void)
+boot_map_region	pmap.c	/^boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)$/;"	f	file:	signature:(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
+boot_map_region	pmap.c	/^static void boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm);$/;"	p	file:	signature:(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
+bootcpu	mpconfig.c	/^struct CpuInfo *bootcpu;$/;"	v	typeref:struct:CpuInfo
+bootstack	entry.S	/^bootstack:$/;"	l
+bootstacktop	entry.S	/^bootstacktop:$/;"	l
+buf	console.c	/^	uint8_t buf[CONSBUFSIZE];$/;"	m	struct:__anon1	file:	access:public
+cga_init	console.c	/^cga_init(void)$/;"	f	file:	signature:(void)
+cga_putc	console.c	/^cga_putc(int c)$/;"	f	file:	signature:(int c)
+charcode	console.c	/^static uint8_t *charcode[4] = {$/;"	v	file:
+check_kern_pgdir	pmap.c	/^check_kern_pgdir(void)$/;"	f	file:	signature:(void)
+check_kern_pgdir	pmap.c	/^static void check_kern_pgdir(void);$/;"	p	file:	signature:(void)
+check_page	pmap.c	/^check_page(void)$/;"	f	file:	signature:(void)
+check_page	pmap.c	/^static void check_page(void);$/;"	p	file:	signature:(void)
+check_page_alloc	pmap.c	/^check_page_alloc(void)$/;"	f	file:	signature:(void)
+check_page_alloc	pmap.c	/^static void check_page_alloc(void);$/;"	p	file:	signature:(void)
+check_page_free_list	pmap.c	/^check_page_free_list(bool only_low_memory)$/;"	f	file:	signature:(bool only_low_memory)
+check_page_free_list	pmap.c	/^static void check_page_free_list(bool only_low_memory);$/;"	p	file:	signature:(bool only_low_memory)
+check_page_installed_pgdir	pmap.c	/^check_page_installed_pgdir(void)$/;"	f	file:	signature:(void)
+check_page_installed_pgdir	pmap.c	/^static void check_page_installed_pgdir(void);$/;"	p	file:	signature:(void)
+check_va2pa	pmap.c	/^check_va2pa(pde_t *pgdir, uintptr_t va)$/;"	f	file:	signature:(pde_t *pgdir, uintptr_t va)
+check_va2pa	pmap.c	/^static physaddr_t check_va2pa(pde_t *pgdir, uintptr_t va);$/;"	p	file:	signature:(pde_t *pgdir, uintptr_t va)
+checksum	mpconfig.c	/^	uint8_t checksum;               \/\/ all bytes must add up to 0$/;"	m	struct:mp	file:	access:public
+checksum	mpconfig.c	/^	uint8_t checksum;               \/\/ all bytes must add up to 0$/;"	m	struct:mpconf	file:	access:public
+commands	monitor.c	/^static struct Command commands[] = {$/;"	v	typeref:struct:Command	file:
+cons	console.c	/^} cons;$/;"	v	typeref:struct:__anon1	file:
+cons_getc	console.c	/^cons_getc(void)$/;"	f	signature:(void)
+cons_getc	console.h	/^int cons_getc(void);$/;"	p	signature:(void)
+cons_init	console.c	/^cons_init(void)$/;"	f	signature:(void)
+cons_init	console.h	/^void cons_init(void);$/;"	p	signature:(void)
+cons_intr	console.c	/^cons_intr(int (*proc)(void))$/;"	f	file:	signature:(int (*proc)(void))
+cons_intr	console.c	/^static void cons_intr(int (*proc)(void));$/;"	p	file:	signature:(int (*proc)(void))
+cons_putc	console.c	/^cons_putc(int c)$/;"	f	file:	signature:(int c)
+cons_putc	console.c	/^static void cons_putc(int c);$/;"	p	file:	signature:(int c)
+cprintf	printf.c	/^cprintf(const char *fmt, ...)$/;"	f	signature:(const char *fmt, ...)
+cpu	spinlock.h	/^	struct CpuInfo *cpu;   \/\/ The CPU holding the lock.$/;"	m	struct:spinlock	typeref:struct:spinlock::CpuInfo	access:public
+cpu_env	cpu.h	/^	struct Env *cpu_env;            \/\/ The currently-running environment.$/;"	m	struct:CpuInfo	typeref:struct:CpuInfo::Env	access:public
+cpu_id	cpu.h	/^	uint8_t cpu_id;                 \/\/ Local APIC ID; index into cpus[] below$/;"	m	struct:CpuInfo	access:public
+cpu_status	cpu.h	/^	volatile unsigned cpu_status;   \/\/ The status of the CPU$/;"	m	struct:CpuInfo	access:public
+cpu_ts	cpu.h	/^	struct Taskstate cpu_ts;        \/\/ Used by x86 to find stack for interrupt$/;"	m	struct:CpuInfo	typeref:struct:CpuInfo::Taskstate	access:public
+cpunum	cpu.h	/^int cpunum(void);$/;"	p	signature:(void)
+cpunum	lapic.c	/^cpunum(void)$/;"	f	signature:(void)
+cpus	mpconfig.c	/^struct CpuInfo cpus[NCPU];$/;"	v	typeref:struct:CpuInfo
+cputchar	console.c	/^cputchar(int c)$/;"	f	signature:(int c)
+crt_buf	console.c	/^static uint16_t *crt_buf;$/;"	v	file:
+crt_pos	console.c	/^static uint16_t crt_pos;$/;"	v	file:
+ctlmap	console.c	/^static uint8_t ctlmap[256] =$/;"	v	file:
+curenv	env.h	10;"	d
+data	pmap.h	/^	uint32_t data;$/;"	m	struct:My_Disk	access:public
+debuginfo_eip	kdebug.c	/^debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)$/;"	f	signature:(uintptr_t addr, struct Eipdebuginfo *info)
+debuginfo_eip	kdebug.h	/^int debuginfo_eip(uintptr_t eip, struct Eipdebuginfo *info);$/;"	p	signature:(uintptr_t eip, struct Eipdebuginfo *info)
+delay	console.c	/^delay(void)$/;"	f	file:	signature:(void)
+desc	monitor.c	/^	const char *desc;$/;"	m	struct:Command	file:	access:public
+didinit	picirq.c	/^static bool didinit;$/;"	v	file:
+dirty	pmap.h	/^	bool dirty;$/;"	m	struct:My_Disk	access:public
+disk_alloc	syscall.c	/^static void disk_alloc() {$/;"	f	file:
+eip_file	kdebug.h	/^	const char *eip_file;		\/\/ Source code filename for EIP$/;"	m	struct:Eipdebuginfo	access:public
+eip_fn_addr	kdebug.h	/^	uintptr_t eip_fn_addr;		\/\/ Address of start of function$/;"	m	struct:Eipdebuginfo	access:public
+eip_fn_name	kdebug.h	/^	const char *eip_fn_name;	\/\/ Name of function containing EIP$/;"	m	struct:Eipdebuginfo	access:public
+eip_fn_namelen	kdebug.h	/^	int eip_fn_namelen;		\/\/ Length of function name$/;"	m	struct:Eipdebuginfo	access:public
+eip_fn_narg	kdebug.h	/^	int eip_fn_narg;		\/\/ Number of function arguments$/;"	m	struct:Eipdebuginfo	access:public
+eip_line	kdebug.h	/^	int eip_line;			\/\/ Source code linenumber for EIP$/;"	m	struct:Eipdebuginfo	access:public
+entries	mpconfig.c	/^	uint8_t entries[0];             \/\/ table entries$/;"	m	struct:mpconf	file:	access:public
+entry	entry.S	/^entry:$/;"	l
+entry	mpconfig.c	/^	uint16_t entry;                 \/\/ entry count$/;"	m	struct:mpconf	file:	access:public
+entry_pgdir	entrypgdir.c	/^pde_t entry_pgdir[NPDENTRIES] = {$/;"	v
+entry_pgtable	entrypgdir.c	/^pte_t entry_pgtable[NPTENTRIES] = {$/;"	v
+entry_pgtable	entrypgdir.c	/^pte_t entry_pgtable[NPTENTRIES];$/;"	v
+env_alloc	env.c	/^env_alloc(struct Env **newenv_store, envid_t parent_id)$/;"	f	signature:(struct Env **newenv_store, envid_t parent_id)
+env_alloc	env.h	/^int	env_alloc(struct Env **e, envid_t parent_id);$/;"	p	signature:(struct Env **e, envid_t parent_id)
+env_create	env.c	/^env_create(uint8_t *binary, size_t size, enum EnvType type)$/;"	f	signature:(uint8_t *binary, size_t size, enum EnvType type)
+env_create	env.h	/^void	env_create(uint8_t *binary, size_t size, enum EnvType type);$/;"	p	signature:(uint8_t *binary, size_t size, enum EnvType type)
+env_destroy	env.c	/^env_destroy(struct Env *e)$/;"	f	signature:(struct Env *e)
+env_destroy	env.h	/^void	env_destroy(struct Env *e);	\/\/ Does not return if e == curenv$/;"	p	signature:(struct Env *e)
+env_free	env.c	/^env_free(struct Env *e)$/;"	f	signature:(struct Env *e)
+env_free	env.h	/^void	env_free(struct Env *e);$/;"	p	signature:(struct Env *e)
+env_free_list	env.c	/^static struct Env *env_free_list;	\/\/ Free environment list$/;"	v	typeref:struct:Env	file:
+env_init	env.c	/^env_init(void)$/;"	f	signature:(void)
+env_init	env.h	/^void	env_init(void);$/;"	p	signature:(void)
+env_init_percpu	env.c	/^env_init_percpu(void)$/;"	f	signature:(void)
+env_init_percpu	env.h	/^void	env_init_percpu(void);$/;"	p	signature:(void)
+env_pop_tf	env.c	/^env_pop_tf(struct Trapframe *tf)$/;"	f	signature:(struct Trapframe *tf)
+env_pop_tf	env.h	/^void	env_pop_tf(struct Trapframe *tf) __attribute__((noreturn));$/;"	p	signature:(struct Trapframe *tf)
+env_run	env.c	/^env_run(struct Env *e)$/;"	f	signature:(struct Env *e)
+env_run	env.h	/^void	env_run(struct Env *e) __attribute__((noreturn));$/;"	p	signature:(struct Env *e)
+env_setup_vm	env.c	/^env_setup_vm(struct Env *e)$/;"	f	file:	signature:(struct Env *e)
+envid2env	env.c	/^envid2env(envid_t envid, struct Env **env_store, bool checkperm)$/;"	f	signature:(envid_t envid, struct Env **env_store, bool checkperm)
+envid2env	env.h	/^int	envid2env(envid_t envid, struct Env **env_store, bool checkperm);$/;"	p	signature:(envid_t envid, struct Env **env_store, bool checkperm)
+envs	env.c	/^struct Env *envs = NULL;		\/\/ All environments$/;"	v	typeref:struct:Env
+feature	mpconfig.c	/^	uint32_t feature;               \/\/ feature flags from CPUID instruction$/;"	m	struct:mpproc	file:	access:public
+flags	mpconfig.c	/^	uint8_t flags;                  \/\/ CPU flags$/;"	m	struct:mpproc	file:	access:public
+func	monitor.c	/^	int (*func)(int argc, char** argv, struct Trapframe* tf);$/;"	m	struct:Command	file:	access:public
+gdt	env.c	/^struct Segdesc gdt[NCPU + 5] =$/;"	v	typeref:struct:Segdesc
+gdt	mpentry.S	/^gdt:$/;"	l
+gdt_pd	env.c	/^struct Pseudodesc gdt_pd = {$/;"	v	typeref:struct:Pseudodesc
+gdtdesc	mpentry.S	/^gdtdesc:$/;"	l
+get_caller_pcs	spinlock.c	/^get_caller_pcs(uint32_t pcs[])$/;"	f	file:	signature:(uint32_t pcs[])
+getchar	console.c	/^getchar(void)$/;"	f	signature:(void)
+holding	spinlock.c	/^holding(struct spinlock *lock)$/;"	f	file:	signature:(struct spinlock *lock)
+i386_detect_memory	pmap.c	/^i386_detect_memory(void)$/;"	f	file:	signature:(void)
+i386_init	init.c	/^i386_init(void)$/;"	f	signature:(void)
+idt	trap.c	/^struct Gatedesc idt[256] = { { 0 } };$/;"	v	typeref:struct:Gatedesc
+idt_pd	trap.c	/^struct Pseudodesc idt_pd = {$/;"	v	typeref:struct:Pseudodesc
+imcrp	mpconfig.c	/^	uint8_t imcrp;$/;"	m	struct:mp	file:	access:public
+irq_mask_8259A	picirq.c	/^uint16_t irq_mask_8259A = 0xFFFF & ~(1<<IRQ_SLAVE);$/;"	v
+irq_setmask_8259A	picirq.c	/^irq_setmask_8259A(uint16_t mask)$/;"	f	signature:(uint16_t mask)
+irq_setmask_8259A	picirq.h	/^void irq_setmask_8259A(uint16_t mask);$/;"	p	signature:(uint16_t mask)
+iscons	console.c	/^iscons(int fdnum)$/;"	f	signature:(int fdnum)
+ismp	mpconfig.c	/^int ismp;$/;"	v
+kbd_init	console.c	/^kbd_init(void)$/;"	f	file:	signature:(void)
+kbd_intr	console.c	/^kbd_intr(void)$/;"	f	signature:(void)
+kbd_intr	console.h	/^void kbd_intr(void); \/\/ irq 1$/;"	p	signature:(void)
+kbd_proc_data	console.c	/^kbd_proc_data(void)$/;"	f	file:	signature:(void)
+kern_pgdir	pmap.c	/^pde_t *kern_pgdir;		\/\/ Kernel's initial page directory$/;"	v
+kernel_lock	spinlock.c	/^struct spinlock kernel_lock = {$/;"	v	typeref:struct:spinlock
+lapic	lapic.c	/^volatile uint32_t *lapic;$/;"	v
+lapic_eoi	cpu.h	/^void lapic_eoi(void);$/;"	p	signature:(void)
+lapic_eoi	lapic.c	/^lapic_eoi(void)$/;"	f	signature:(void)
+lapic_init	cpu.h	/^void lapic_init(void);$/;"	p	signature:(void)
+lapic_init	lapic.c	/^lapic_init(void)$/;"	f	signature:(void)
+lapic_ipi	cpu.h	/^void lapic_ipi(int vector);$/;"	p	signature:(int vector)
+lapic_ipi	lapic.c	/^lapic_ipi(int vector)$/;"	f	signature:(int vector)
+lapic_startap	cpu.h	/^void lapic_startap(uint8_t apicid, uint32_t addr);$/;"	p	signature:(uint8_t apicid, uint32_t addr)
+lapic_startap	lapic.c	/^lapic_startap(uint8_t apicid, uint32_t addr)$/;"	f	signature:(uint8_t apicid, uint32_t addr)
+lapicaddr	lapic.c	/^physaddr_t lapicaddr;        \/\/ Initialized in mpconfig.c$/;"	v
+lapicaddr	mpconfig.c	/^	physaddr_t lapicaddr;           \/\/ address of local APIC$/;"	m	struct:mpconf	file:	access:public
+lapicw	lapic.c	/^lapicw(int index, int value)$/;"	f	file:	signature:(int index, int value)
+last_tf	trap.c	/^static struct Trapframe *last_tf;$/;"	v	typeref:struct:Trapframe	file:
+length	mpconfig.c	/^	uint16_t length;                \/\/ total table length$/;"	m	struct:mpconf	file:	access:public
+length	mpconfig.c	/^	uint8_t length;                 \/\/ 1$/;"	m	struct:mp	file:	access:public
+load_icode	env.c	/^load_icode(struct Env *e, uint8_t *binary, size_t size)$/;"	f	file:	signature:(struct Env *e, uint8_t *binary, size_t size)
+lock_kernel	spinlock.h	/^lock_kernel(void)$/;"	f	signature:(void)
+locked	spinlock.h	/^	unsigned locked;       \/\/ Is the lock held?$/;"	m	struct:spinlock	access:public
+lpt_putc	console.c	/^lpt_putc(int c)$/;"	f	file:	signature:(int c)
+mc146818_read	kclock.c	/^mc146818_read(unsigned reg)$/;"	f	signature:(unsigned reg)
+mc146818_read	kclock.h	/^unsigned mc146818_read(unsigned reg);$/;"	p	signature:(unsigned reg)
+mc146818_write	kclock.c	/^mc146818_write(unsigned reg, unsigned datum)$/;"	f	signature:(unsigned reg, unsigned datum)
+mc146818_write	kclock.h	/^void mc146818_write(unsigned reg, unsigned datum);$/;"	p	signature:(unsigned reg, unsigned datum)
+mem_init	pmap.c	/^mem_init(void)$/;"	f	signature:(void)
+mem_init	pmap.h	/^void	mem_init(void);$/;"	p	signature:(void)
+mem_init_mp	pmap.c	/^mem_init_mp(void)$/;"	f	file:	signature:(void)
+mem_init_mp	pmap.c	/^static void mem_init_mp(void);$/;"	p	file:	signature:(void)
+microdelay	lapic.c	/^microdelay(int us)$/;"	f	file:	signature:(int us)
+mmio_map_region	pmap.c	/^mmio_map_region(physaddr_t pa, size_t size)$/;"	f	signature:(physaddr_t pa, size_t size)
+mmio_map_region	pmap.h	/^void *	mmio_map_region(physaddr_t pa, size_t size);$/;"	p	signature:(physaddr_t pa, size_t size)
+mon_backtrace	monitor.c	/^mon_backtrace(int argc, char **argv, struct Trapframe *tf)$/;"	f	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_backtrace	monitor.h	/^int mon_backtrace(int argc, char **argv, struct Trapframe *tf);$/;"	p	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_changePermission	monitor.c	/^int mon_changePermission(int argc, char **argv, struct Trapframe *tf) $/;"	f	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_changePermission	monitor.h	/^int mon_changePermission(int argc, char **argv, struct Trapframe *tf);$/;"	p	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_continue	monitor.c	/^int mon_continue(int argc, char **argv, struct Trapframe *tf)$/;"	f	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_continue	monitor.h	/^int mon_continue(int argc, char **argv, struct Trapframe *tf);$/;"	p	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_dump	monitor.c	/^int mon_dump(int argc, char **argv, struct Trapframe *tf) {$/;"	f	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_dump	monitor.h	/^int mon_dump(int argc, char **argv, struct Trapframe *tf);$/;"	p	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_help	monitor.c	/^mon_help(int argc, char **argv, struct Trapframe *tf)$/;"	f	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_help	monitor.h	/^int mon_help(int argc, char **argv, struct Trapframe *tf);$/;"	p	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_kerninfo	monitor.c	/^mon_kerninfo(int argc, char **argv, struct Trapframe *tf)$/;"	f	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_kerninfo	monitor.h	/^int mon_kerninfo(int argc, char **argv, struct Trapframe *tf);$/;"	p	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_setcolor	monitor.c	/^int mon_setcolor(int argc, char **argv, struct Trapframe *tf) {$/;"	f	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_setcolor	monitor.h	/^int mon_setcolor(int argc, char **argv, struct Trapframe *tf);$/;"	p	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_showPT	monitor.c	/^int mon_showPT(int argc, char **argv, struct Trapframe *tf) {$/;"	f	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_showPT	monitor.h	/^int mon_showPT(int argc, char **argv, struct Trapframe *tf);$/;"	p	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_showmapping	monitor.c	/^int mon_showmapping(int argc, char **argv, struct Trapframe *tf) $/;"	f	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_showmapping	monitor.h	/^int mon_showmapping(int argc, char **argv, struct Trapframe *tf); $/;"	p	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_si	monitor.c	/^int mon_si(int argc, char **argv, struct Trapframe *tf) {$/;"	f	signature:(int argc, char **argv, struct Trapframe *tf)
+mon_si	monitor.h	/^int mon_si(int argc, char **argv, struct Trapframe *tf);$/;"	p	signature:(int argc, char **argv, struct Trapframe *tf)
+monitor	monitor.c	/^monitor(struct Trapframe *tf)$/;"	f	signature:(struct Trapframe *tf)
+monitor	monitor.h	/^void monitor(struct Trapframe *tf);$/;"	p	signature:(struct Trapframe *tf)
+mp	mpconfig.c	/^struct mp {             \/\/ floating pointer [MP 4.1]$/;"	s	file:
+mp::checksum	mpconfig.c	/^	uint8_t checksum;               \/\/ all bytes must add up to 0$/;"	m	struct:mp	file:	access:public
+mp::imcrp	mpconfig.c	/^	uint8_t imcrp;$/;"	m	struct:mp	file:	access:public
+mp::length	mpconfig.c	/^	uint8_t length;                 \/\/ 1$/;"	m	struct:mp	file:	access:public
+mp::physaddr	mpconfig.c	/^	physaddr_t physaddr;            \/\/ phys addr of MP config table$/;"	m	struct:mp	file:	access:public
+mp::reserved	mpconfig.c	/^	uint8_t reserved[3];$/;"	m	struct:mp	file:	access:public
+mp::signature	mpconfig.c	/^	uint8_t signature[4];           \/\/ "_MP_"$/;"	m	struct:mp	file:	access:public
+mp::specrev	mpconfig.c	/^	uint8_t specrev;                \/\/ [14]$/;"	m	struct:mp	file:	access:public
+mp::type	mpconfig.c	/^	uint8_t type;                   \/\/ MP system config type$/;"	m	struct:mp	file:	access:public
+mp_init	cpu.h	/^void mp_init(void);$/;"	p	signature:(void)
+mp_init	mpconfig.c	/^mp_init(void)$/;"	f	signature:(void)
+mp_main	init.c	/^mp_main(void)$/;"	f	signature:(void)
+mpconf	mpconfig.c	/^struct mpconf {         \/\/ configuration table header [MP 4.2]$/;"	s	file:
+mpconf::checksum	mpconfig.c	/^	uint8_t checksum;               \/\/ all bytes must add up to 0$/;"	m	struct:mpconf	file:	access:public
+mpconf::entries	mpconfig.c	/^	uint8_t entries[0];             \/\/ table entries$/;"	m	struct:mpconf	file:	access:public
+mpconf::entry	mpconfig.c	/^	uint16_t entry;                 \/\/ entry count$/;"	m	struct:mpconf	file:	access:public
+mpconf::lapicaddr	mpconfig.c	/^	physaddr_t lapicaddr;           \/\/ address of local APIC$/;"	m	struct:mpconf	file:	access:public
+mpconf::length	mpconfig.c	/^	uint16_t length;                \/\/ total table length$/;"	m	struct:mpconf	file:	access:public
+mpconf::oemlength	mpconfig.c	/^	uint16_t oemlength;             \/\/ OEM table length$/;"	m	struct:mpconf	file:	access:public
+mpconf::oemtable	mpconfig.c	/^	physaddr_t oemtable;            \/\/ OEM table pointer$/;"	m	struct:mpconf	file:	access:public
+mpconf::product	mpconfig.c	/^	uint8_t product[20];            \/\/ product id$/;"	m	struct:mpconf	file:	access:public
+mpconf::reserved	mpconfig.c	/^	uint8_t reserved;$/;"	m	struct:mpconf	file:	access:public
+mpconf::signature	mpconfig.c	/^	uint8_t signature[4];           \/\/ "PCMP"$/;"	m	struct:mpconf	file:	access:public
+mpconf::version	mpconfig.c	/^	uint8_t version;                \/\/ [14]$/;"	m	struct:mpconf	file:	access:public
+mpconf::xchecksum	mpconfig.c	/^	uint8_t xchecksum;              \/\/ extended table checksum$/;"	m	struct:mpconf	file:	access:public
+mpconf::xlength	mpconfig.c	/^	uint16_t xlength;               \/\/ extended table length$/;"	m	struct:mpconf	file:	access:public
+mpconfig	mpconfig.c	/^mpconfig(struct mp **pmp)$/;"	f	file:	signature:(struct mp **pmp)
+mpentry_end	mpentry.S	/^mpentry_end:$/;"	l
+mpentry_kstack	init.c	/^void *mpentry_kstack;$/;"	v
+mpentry_start	mpentry.S	/^mpentry_start:$/;"	l
+mpproc	mpconfig.c	/^struct mpproc {         \/\/ processor table entry [MP 4.3.1]$/;"	s	file:
+mpproc::apicid	mpconfig.c	/^	uint8_t apicid;                 \/\/ local APIC id$/;"	m	struct:mpproc	file:	access:public
+mpproc::feature	mpconfig.c	/^	uint32_t feature;               \/\/ feature flags from CPUID instruction$/;"	m	struct:mpproc	file:	access:public
+mpproc::flags	mpconfig.c	/^	uint8_t flags;                  \/\/ CPU flags$/;"	m	struct:mpproc	file:	access:public
+mpproc::reserved	mpconfig.c	/^	uint8_t reserved[8];$/;"	m	struct:mpproc	file:	access:public
+mpproc::signature	mpconfig.c	/^	uint8_t signature[4];           \/\/ CPU signature$/;"	m	struct:mpproc	file:	access:public
+mpproc::type	mpconfig.c	/^	uint8_t type;                   \/\/ entry type (0)$/;"	m	struct:mpproc	file:	access:public
+mpproc::version	mpconfig.c	/^	uint8_t version;                \/\/ local APIC version$/;"	m	struct:mpproc	file:	access:public
+mpsearch	mpconfig.c	/^mpsearch(void)$/;"	f	file:	signature:(void)
+mpsearch1	mpconfig.c	/^mpsearch1(physaddr_t a, int len)$/;"	f	file:	signature:(physaddr_t a, int len)
+name	monitor.c	/^	const char *name;$/;"	m	struct:Command	file:	access:public
+name	spinlock.h	/^	char *name;            \/\/ Name of lock.$/;"	m	struct:spinlock	access:public
+name	trapentry.S	/^	name:								\\$/;"	l
+name	trapentry.S	/^	name:			\/* function starts here *\/		\\$/;"	l
+ncpu	mpconfig.c	/^int ncpu;$/;"	v
+next	pmap.h	/^	struct My_Disk* next;$/;"	m	struct:My_Disk	typeref:struct:My_Disk::My_Disk	access:public
+nn_add	pmap.h	/^static int nn_add[7] = {0, 0, 4, 0, 5, 6, 2};$/;"	v
+normalmap	console.c	/^static uint8_t normalmap[256] =$/;"	v	file:
+now	pmap.h	/^	int now;$/;"	m	struct:My_Disk	access:public
+now_raid2_add	pmap.h	/^static int now_raid2_add = 0;$/;"	v
+now_raid2_disk	pmap.h	/^static int now_raid2_disk = 0;$/;"	v
+npages	pmap.c	/^size_t npages;			\/\/ Amount of physical memory (in pages)$/;"	v
+npages_basemem	pmap.c	/^static size_t npages_basemem;	\/\/ Amount of base memory (in pages)$/;"	v	file:
+nraid2_disks	pmap.h	/^static int nraid2_disks = 100;$/;"	v
+nvram_read	pmap.c	/^nvram_read(int r)$/;"	f	file:	signature:(int r)
+oemlength	mpconfig.c	/^	uint16_t oemlength;             \/\/ OEM table length$/;"	m	struct:mpconf	file:	access:public
+oemtable	mpconfig.c	/^	physaddr_t oemtable;            \/\/ OEM table pointer$/;"	m	struct:mpconf	file:	access:public
+origin_raid2_disk	pmap.h	/^static struct My_Disk* origin_raid2_disk[7];$/;"	v	typeref:struct:My_Disk
+pa2page	pmap.h	/^pa2page(physaddr_t pa)$/;"	f	signature:(physaddr_t pa)
+page2kva	pmap.h	/^page2kva(struct PageInfo *pp)$/;"	f	signature:(struct PageInfo *pp)
+page2pa	pmap.h	/^page2pa(struct PageInfo *pp)$/;"	f	signature:(struct PageInfo *pp)
+page_alloc	pmap.c	/^page_alloc(int alloc_flags)$/;"	f	signature:(int alloc_flags)
+page_alloc	pmap.h	/^struct PageInfo *page_alloc(int alloc_flags);$/;"	p	signature:(int alloc_flags)
+page_decref	pmap.c	/^page_decref(struct PageInfo* pp)$/;"	f	signature:(struct PageInfo* pp)
+page_decref	pmap.h	/^void	page_decref(struct PageInfo *pp);$/;"	p	signature:(struct PageInfo *pp)
+page_fault_handler	trap.c	/^page_fault_handler(struct Trapframe *tf)$/;"	f	signature:(struct Trapframe *tf)
+page_fault_handler	trap.h	/^void page_fault_handler(struct Trapframe *);$/;"	p	signature:(struct Trapframe *)
+page_free	pmap.c	/^page_free(struct PageInfo *pp)$/;"	f	signature:(struct PageInfo *pp)
+page_free	pmap.h	/^void	page_free(struct PageInfo *pp);$/;"	p	signature:(struct PageInfo *pp)
+page_free_list	pmap.c	/^static struct PageInfo *page_free_list;	\/\/ Free list of physical pages$/;"	v	typeref:struct:PageInfo	file:
+page_init	pmap.c	/^page_init(void)$/;"	f	signature:(void)
+page_init	pmap.h	/^void	page_init(void);$/;"	p	signature:(void)
+page_insert	pmap.c	/^page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)$/;"	f	signature:(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
+page_insert	pmap.h	/^int	page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm);$/;"	p	signature:(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
+page_lookup	pmap.c	/^page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)$/;"	f	signature:(pde_t *pgdir, void *va, pte_t **pte_store)
+page_lookup	pmap.h	/^struct PageInfo *page_lookup(pde_t *pgdir, void *va, pte_t **pte_store);$/;"	p	signature:(pde_t *pgdir, void *va, pte_t **pte_store)
+page_remove	pmap.c	/^page_remove(pde_t *pgdir, void *va)$/;"	f	signature:(pde_t *pgdir, void *va)
+page_remove	pmap.h	/^void	page_remove(pde_t *pgdir, void *va);$/;"	p	signature:(pde_t *pgdir, void *va)
+pages	pmap.c	/^struct PageInfo *pages;		\/\/ Physical page state array$/;"	v	typeref:struct:PageInfo
+panicstr	init.c	/^const char *panicstr;$/;"	v
+pcs	spinlock.h	/^	uintptr_t pcs[10];     \/\/ The call stack (an array of program counters)$/;"	m	struct:spinlock	access:public
+percpu_kstacks	mpconfig.c	/^unsigned char percpu_kstacks[NCPU][KSTKSIZE]$/;"	v
+pgdir_walk	pmap.c	/^pgdir_walk(pde_t *pgdir, const void *va, int create)$/;"	f	signature:(pde_t *pgdir, const void *va, int create)
+pgdir_walk	pmap.h	/^pte_t *pgdir_walk(pde_t *pgdir, const void *va, int create);$/;"	p	signature:(pde_t *pgdir, const void *va, int create)
+physaddr	mpconfig.c	/^	physaddr_t physaddr;            \/\/ phys addr of MP config table$/;"	m	struct:mp	file:	access:public
+pic_init	picirq.c	/^pic_init(void)$/;"	f	signature:(void)
+pic_init	picirq.h	/^void pic_init(void);$/;"	p	signature:(void)
+printPermission	monitor.c	/^void printPermission(pte_t now) {$/;"	f	signature:(pte_t now)
+print_regs	trap.c	/^print_regs(struct PushRegs *regs)$/;"	f	signature:(struct PushRegs *regs)
+print_regs	trap.h	/^void print_regs(struct PushRegs *regs);$/;"	p	signature:(struct PushRegs *regs)
+print_trapframe	trap.c	/^print_trapframe(struct Trapframe *tf)$/;"	f	signature:(struct Trapframe *tf)
+print_trapframe	trap.h	/^void print_trapframe(struct Trapframe *tf);$/;"	p	signature:(struct Trapframe *tf)
+product	mpconfig.c	/^	uint8_t product[20];            \/\/ product id$/;"	m	struct:mpconf	file:	access:public
+putch	printf.c	/^putch(int ch, int *cnt)$/;"	f	file:	signature:(int ch, int *cnt)
+pxtoi	monitor.c	/^bool pxtoi(uint32_t *va, char *origin) {$/;"	f	signature:(uint32_t *va, char *origin)
+raid2_disks	pmap.h	/^static struct My_Disk* raid2_disks;$/;"	v	typeref:struct:My_Disk
+region_alloc	env.c	/^region_alloc(struct Env *e, void *va, size_t len)$/;"	f	file:	signature:(struct Env *e, void *va, size_t len)
+relocated	entry.S	/^relocated:$/;"	l
+reserved	mpconfig.c	/^	uint8_t reserved;$/;"	m	struct:mpconf	file:	access:public
+reserved	mpconfig.c	/^	uint8_t reserved[3];$/;"	m	struct:mp	file:	access:public
+reserved	mpconfig.c	/^	uint8_t reserved[8];$/;"	m	struct:mpproc	file:	access:public
+rpos	console.c	/^	uint32_t rpos;$/;"	m	struct:__anon1	file:	access:public
+runcmd	monitor.c	/^runcmd(char *buf, struct Trapframe *tf)$/;"	f	file:	signature:(char *buf, struct Trapframe *tf)
+sched_halt	sched.c	/^sched_halt(void)$/;"	f	signature:(void)
+sched_halt	sched.c	/^void sched_halt(void);$/;"	p	file:	signature:(void)
+sched_yield	sched.c	/^sched_yield(void)$/;"	f	signature:(void)
+sched_yield	sched.h	/^void sched_yield(void) __attribute__((noreturn));$/;"	p	signature:(void)
+serial_exists	console.c	/^static bool serial_exists;$/;"	v	file:
+serial_init	console.c	/^serial_init(void)$/;"	f	file:	signature:(void)
+serial_intr	console.c	/^serial_intr(void)$/;"	f	signature:(void)
+serial_intr	console.h	/^void serial_intr(void); \/\/ irq 4$/;"	p	signature:(void)
+serial_proc_data	console.c	/^serial_proc_data(void)$/;"	f	file:	signature:(void)
+serial_putc	console.c	/^serial_putc(int c)$/;"	f	file:	signature:(int c)
+set_attribute_color	console.c	/^void set_attribute_color(uint16_t back, uint16_t fore) {$/;"	f	signature:(uint16_t back, uint16_t fore)
+set_attribute_color	console.h	/^void set_attribute_color(uint16_t back, uint16_t fore);$/;"	p	signature:(uint16_t back, uint16_t fore)
+shiftcode	console.c	/^static uint8_t shiftcode[256] =$/;"	v	file:
+shiftmap	console.c	/^static uint8_t shiftmap[256] =$/;"	v	file:
+signature	mpconfig.c	/^	uint8_t signature[4];           \/\/ "PCMP"$/;"	m	struct:mpconf	file:	access:public
+signature	mpconfig.c	/^	uint8_t signature[4];           \/\/ "_MP_"$/;"	m	struct:mp	file:	access:public
+signature	mpconfig.c	/^	uint8_t signature[4];           \/\/ CPU signature$/;"	m	struct:mpproc	file:	access:public
+specrev	mpconfig.c	/^	uint8_t specrev;                \/\/ [14]$/;"	m	struct:mp	file:	access:public
+spin	entry.S	/^spin:	jmp	spin$/;"	l
+spin	mpentry.S	/^spin:$/;"	l
+spin_initlock	spinlock.h	26;"	d
+spin_lock	spinlock.c	/^spin_lock(struct spinlock *lk)$/;"	f	signature:(struct spinlock *lk)
+spin_lock	spinlock.h	/^void spin_lock(struct spinlock *lk);$/;"	p	signature:(struct spinlock *lk)
+spin_unlock	spinlock.c	/^spin_unlock(struct spinlock *lk)$/;"	f	signature:(struct spinlock *lk)
+spin_unlock	spinlock.h	/^void spin_unlock(struct spinlock *lk);$/;"	p	signature:(struct spinlock *lk)
+spinlock	spinlock.h	/^struct spinlock {$/;"	s
+spinlock::cpu	spinlock.h	/^	struct CpuInfo *cpu;   \/\/ The CPU holding the lock.$/;"	m	struct:spinlock	typeref:struct:spinlock::CpuInfo	access:public
+spinlock::locked	spinlock.h	/^	unsigned locked;       \/\/ Is the lock held?$/;"	m	struct:spinlock	access:public
+spinlock::name	spinlock.h	/^	char *name;            \/\/ Name of lock.$/;"	m	struct:spinlock	access:public
+spinlock::pcs	spinlock.h	/^	uintptr_t pcs[10];     \/\/ The call stack (an array of program counters)$/;"	m	struct:spinlock	access:public
+stab_binsearch	kdebug.c	/^stab_binsearch(const struct Stab *stabs, int *region_left, int *region_right,$/;"	f	file:	signature:(const struct Stab *stabs, int *region_left, int *region_right, int type, uintptr_t addr)
+stab_end	kdebug.c	/^	const struct Stab *stab_end;$/;"	m	struct:UserStabData	typeref:struct:UserStabData::Stab	file:	access:public
+stabs	kdebug.c	/^	const struct Stab *stabs;$/;"	m	struct:UserStabData	typeref:struct:UserStabData::Stab	file:	access:public
+stabstr	kdebug.c	/^	const char *stabstr;$/;"	m	struct:UserStabData	file:	access:public
+stabstr_end	kdebug.c	/^	const char *stabstr_end;$/;"	m	struct:UserStabData	file:	access:public
+start32	mpentry.S	/^start32:$/;"	l
+sum	mpconfig.c	/^sum(void *addr, int len)$/;"	f	file:	signature:(void *addr, int len)
+sys_cgetc	syscall.c	/^sys_cgetc(void)$/;"	f	file:	signature:(void)
+sys_change_priority	syscall.c	/^static void sys_change_priority(envid_t envid, int p) {$/;"	f	file:	signature:(envid_t envid, int p)
+sys_cputs	syscall.c	/^sys_cputs(const char *s, size_t len)$/;"	f	file:	signature:(const char *s, size_t len)
+sys_env_destroy	syscall.c	/^sys_env_destroy(envid_t envid)$/;"	f	file:	signature:(envid_t envid)
+sys_env_set_pgfault_upcall	syscall.c	/^sys_env_set_pgfault_upcall(envid_t envid, void *func)$/;"	f	file:	signature:(envid_t envid, void *func)
+sys_env_set_status	syscall.c	/^sys_env_set_status(envid_t envid, int status)$/;"	f	file:	signature:(envid_t envid, int status)
+sys_env_set_trapframe	syscall.c	/^sys_env_set_trapframe(envid_t envid, struct Trapframe *tf)$/;"	f	file:	signature:(envid_t envid, struct Trapframe *tf)
+sys_exec	syscall.c	/^sys_exec(uint32_t eip , uint32_t esp , void * v_ph , uint32_t phnum)$/;"	f	file:	signature:(uint32_t eip , uint32_t esp , void * v_ph , uint32_t phnum)
+sys_exofork	syscall.c	/^sys_exofork(void)$/;"	f	file:	signature:(void)
+sys_getenvid	syscall.c	/^sys_getenvid(void)$/;"	f	file:	signature:(void)
+sys_ipc_recv	syscall.c	/^sys_ipc_recv(void *dstva)$/;"	f	file:	signature:(void *dstva)
+sys_ipc_try_send	syscall.c	/^sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)$/;"	f	file:	signature:(envid_t envid, uint32_t value, void *srcva, unsigned perm)
+sys_page_alloc	syscall.c	/^sys_page_alloc(envid_t envid, void *va, int perm)$/;"	f	file:	signature:(envid_t envid, void *va, int perm)
+sys_page_map	syscall.c	/^sys_page_map(envid_t srcenvid, void *srcva,$/;"	f	file:	signature:(envid_t srcenvid, void *srcva, envid_t dstenvid, void *dstva, int perm)
+sys_page_unmap	syscall.c	/^sys_page_unmap(envid_t envid, void *va)$/;"	f	file:	signature:(envid_t envid, void *va)
+sys_raid2_add	syscall.c	/^static void sys_raid2_add(int num, uint32_t* a) {$/;"	f	file:	signature:(int num, uint32_t* a)
+sys_raid2_change	syscall.c	/^static void sys_raid2_change(int is_disk, int num, int change) {$/;"	f	file:	signature:(int is_disk, int num, int change)
+sys_raid2_check	syscall.c	/^static void sys_raid2_check() { $/;"	f	file:
+sys_raid2_init	syscall.c	/^static void sys_raid2_init() {$/;"	f	file:
+sys_yield	syscall.c	/^sys_yield(void)$/;"	f	file:	signature:(void)
+syscall	syscall.c	/^syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)$/;"	f	signature:(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
+syscall	syscall.h	/^int32_t syscall(uint32_t num, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5);$/;"	p	signature:(uint32_t num, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
+thiscpu	cpu.h	38;"	d
+tlb_invalidate	pmap.c	/^tlb_invalidate(pde_t *pgdir, void *va)$/;"	f	signature:(pde_t *pgdir, void *va)
+tlb_invalidate	pmap.h	/^void	tlb_invalidate(pde_t *pgdir, void *va);$/;"	p	signature:(pde_t *pgdir, void *va)
+tmp_disk	syscall.c	/^struct My_Disk* tmp_disk[7];$/;"	v	typeref:struct:My_Disk
+togglecode	console.c	/^static uint8_t togglecode[256] =$/;"	v	file:
+trap	trap.c	/^trap(struct Trapframe *tf)$/;"	f	signature:(struct Trapframe *tf)
+trap_dispatch	trap.c	/^trap_dispatch(struct Trapframe *tf)$/;"	f	file:	signature:(struct Trapframe *tf)
+trap_init	trap.c	/^trap_init(void)$/;"	f	signature:(void)
+trap_init	trap.h	/^void trap_init(void);$/;"	p	signature:(void)
+trap_init_percpu	trap.c	/^trap_init_percpu(void)$/;"	f	signature:(void)
+trap_init_percpu	trap.h	/^void trap_init_percpu(void);$/;"	p	signature:(void)
+trapname	trap.c	/^static const char *trapname(int trapno)$/;"	f	file:	signature:(int trapno)
+ts	trap.c	/^static struct Taskstate ts;$/;"	v	typeref:struct:Taskstate	file:
+type	mpconfig.c	/^	uint8_t type;                   \/\/ MP system config type$/;"	m	struct:mp	file:	access:public
+type	mpconfig.c	/^	uint8_t type;                   \/\/ entry type (0)$/;"	m	struct:mpproc	file:	access:public
+unlock_kernel	spinlock.h	/^unlock_kernel(void)$/;"	f	signature:(void)
+user_mem_assert	pmap.c	/^user_mem_assert(struct Env *env, const void *va, size_t len, int perm)$/;"	f	signature:(struct Env *env, const void *va, size_t len, int perm)
+user_mem_assert	pmap.h	/^void	user_mem_assert(struct Env *env, const void *va, size_t len, int perm);$/;"	p	signature:(struct Env *env, const void *va, size_t len, int perm)
+user_mem_check	pmap.c	/^user_mem_check(struct Env *env, const void *va, size_t len, int perm)$/;"	f	signature:(struct Env *env, const void *va, size_t len, int perm)
+user_mem_check	pmap.h	/^int	user_mem_check(struct Env *env, const void *va, size_t len, int perm);$/;"	p	signature:(struct Env *env, const void *va, size_t len, int perm)
+user_mem_check_addr	pmap.c	/^static uintptr_t user_mem_check_addr;$/;"	v	file:
+user_raid2_disk	pmap.h	/^static struct My_Disk* user_raid2_disk[7];$/;"	v	typeref:struct:My_Disk
+vcprintf	printf.c	/^vcprintf(const char *fmt, va_list ap)$/;"	f	signature:(const char *fmt, va_list ap)
+vectors	trapentry.S	/^vectors:$/;"	l
+version	mpconfig.c	/^	uint8_t version;                \/\/ [14]$/;"	m	struct:mpconf	file:	access:public
+version	mpconfig.c	/^	uint8_t version;                \/\/ local APIC version$/;"	m	struct:mpproc	file:	access:public
+wpos	console.c	/^	uint32_t wpos;$/;"	m	struct:__anon1	file:	access:public
+xchecksum	mpconfig.c	/^	uint8_t xchecksum;              \/\/ extended table checksum$/;"	m	struct:mpconf	file:	access:public
+xlength	mpconfig.c	/^	uint16_t xlength;               \/\/ extended table length$/;"	m	struct:mpconf	file:	access:public
+xtoi	monitor.c	/^uint32_t xtoi(char* origin, bool* check) {$/;"	f	signature:(char* origin, bool* check)
